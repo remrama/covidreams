@@ -1,0 +1,24 @@
+##
+## All scripts were run from a conda environment made from this file.
+##
+## miniconda  ----  conda version 22.11.1
+##
+## $ conda env create --file environment.yaml
+##
+## See environment.txt for specifics (e.g., version numbers).
+##
+name: covidreams
+dependencies:
+  - ipython                   # development
+  - conda-forge::tqdm         # progress bar
+  - numpy                     # data analysis
+  - pandas                    # data analysis
+  - scipy                     # data analysis
+  - statsmodels               # data analysis - statistics
+  - conda-forge::pingouin     # data analysis - statistics
+  - matplotlib                # data visualization
+  - seaborn                   # data visualization
+  - conda-forge::colorcet     # data visualization - colormaps
+  - pip
+  - pip:
+    - psaw                    # data collection - Reddit API
