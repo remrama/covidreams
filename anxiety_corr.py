@@ -85,7 +85,7 @@ pct = weekly.pct_change()
 weekly = weekly.join(pct, rsuffix="_pctchange")
 
 # Add column indicating number of weeks post-COVID-declaration.
-weekly["week"] = range(len(weekly))
+weekly["weeks_after"] = range(len(weekly))
 
 # Run correlation. (rows with NaNs are automatically removed)
 stat = pg.corr(weekly["news_pctchange"], weekly["nextDreams_pctchange"], method="spearman")
@@ -97,7 +97,7 @@ stat["n_news"] = n_news
 
 # Export stats.
 stat.to_csv(export_path_stat, index_label="method", sep="\t")
-weekly.to_csv(export_path_vals, index_label="week", sep="\t", date_format="%Y-%m-%d")
+weekly.to_csv(export_path_vals, index_label="week", sep="\t", na_rep="NA", date_format="%Y-%m-%d")
 
 
 ############################################
@@ -109,7 +109,7 @@ utils.load_matplotlib_settings()
 
 # Select colormap for scatterplot.
 colormap = cc.cm.CET_CBTL3_r
-colornorm = plt.Normalize(vmin=1, vmax=weekly.dropna()["week"].max())
+colornorm = plt.Normalize(vmin=1, vmax=weekly.dropna()["weeks_after"].max())
 
 # Open figure.
 fig, ax = plt.subplots(figsize=(2, 2))
@@ -119,7 +119,7 @@ ax = sns.scatterplot(
     data=weekly,
     x="news_pctchange",
     y="nextDreams_pctchange",
-    hue="week",
+    hue="weeks_after",
     palette=colormap,
     hue_norm=colornorm,
     legend=False,
