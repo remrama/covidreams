@@ -8,7 +8,7 @@ Imports 1 file:
 
 Exports 4 files:
     - model as a pickle file
-    - model data descriptives as a tsv file
+    - model data values as a tsv file
     - model stats as a txt file
     - model plot as a png file
     - model plot as a pdf file
@@ -37,7 +37,7 @@ posts = args.posts
 derivatives_dir = Path(utils.config["derivatives_directory"])
 import_path = derivatives_dir / "LIWC-22 Results - r-dreams_posts - LIWC Analysis.csv"
 export_path_modl = derivatives_dir / f"{year}_{posts}_anxiety_regr-modl.pkl"
-export_path_desc = derivatives_dir / f"{year}_{posts}_anxiety_regr-desc.tsv"
+export_path_vals = derivatives_dir / f"{year}_{posts}_anxiety_regr-vals.tsv"
 export_path_stat = derivatives_dir / f"{year}_{posts}_anxiety_regr-stat.txt"
 export_path_plot = derivatives_dir / f"{year}_{posts}_anxiety_regr-plot.png"
 
@@ -82,20 +82,30 @@ model = model.fit()
 
 # Extract measures for plotting and exporting.
 summary = model.summary()
-predictions = model.get_prediction().summary_frame(alpha=0.05)
+observed = model.get_prediction().summary_frame(alpha=0.05)
 
-# Export stats.
-model.save(export_path_modl)
-predictions.to_csv(export_path_desc, sep="\t")
-with open(export_path_stat, "w", encoding="utf-8") as f:
-    f.write(summary.as_text())
-
-# Run regression on pre-covid to get counterfactual line.
+# Run regression on pre-covid to get counterfactual/predicted line.
 daily_precovid = daily.set_index("date").loc[start_dt:covid_dt]
 model_precovid = smf.ols(formula="emo_anx ~ Time + Covid + TimeCovid", data=daily_precovid)
 model_precovid = model_precovid.fit()
 daily_postcovid = daily.set_index("date").loc[covid_dt:]
-counterfactual = model_precovid.predict(daily_postcovid)
+predicted = model_precovid.predict(daily_postcovid)
+
+# Compile single dataframe with relevant values.
+dat = daily["emo_anx"].rename("data")
+datsmooth = daily_smooth.rename("datasmooth")
+obs = (observed
+    .drop(columns=[c for c in observed if "obs" in c ])
+    .rename(columns=lambda x: x.replace("mean", "obs"))
+)
+pred = predicted.rename("pred")
+model_vals = obs.join(pred).join(dat).join(datsmooth)
+
+# Export stats.
+model.save(export_path_modl)
+model_vals.to_csv(export_path_vals, na_rep="NA", sep="\t")
+with open(export_path_stat, "w", encoding="utf-8") as f:
+    f.write(summary.as_text())
 
 
 ############################################
@@ -125,16 +135,16 @@ ax.plot(xvals, yvals, c=data_color, lw=1, label="Data")
 ax.fill_between(xvals, yvals, color=data_color, lw=0, alpha=0.3)
 
 # Draw regression line.
-xvals = predictions.index.to_numpy()
-yvals = predictions["mean"].to_numpy()
-evals_lo = predictions["mean"].sub(predictions["mean_se"]).to_numpy()
-evals_hi = predictions["mean"].add(predictions["mean_se"]).to_numpy()
+xvals = observed.index.to_numpy()
+yvals = observed["mean"].to_numpy()
+evals_lo = observed["mean"].sub(observed["mean_se"]).to_numpy()
+evals_hi = observed["mean"].add(observed["mean_se"]).to_numpy()
 ax.plot(xvals, yvals, c=regr_color, lw=1, label="Observed")
 ax.fill_between(xvals, evals_lo, evals_hi, color=regr_color, lw=0, alpha=0.3)
 
 # Draw predicted regression line.
-xvals_ = counterfactual.index.to_numpy()
-yvals_ = counterfactual.to_numpy()
+xvals_ = predicted.index.to_numpy()
+yvals_ = predicted.to_numpy()
 ax.plot(xvals_, yvals_, c=regr_color, lw=1, ls="dotted", label="Predicted")
 
 # Draw stats results.
