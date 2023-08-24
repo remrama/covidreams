@@ -28,23 +28,25 @@ import utils
 parser = argparse.ArgumentParser()
 parser.add_argument("-y", "--year", default=2020, choices=[2019, 2020], type=int)
 parser.add_argument("-p", "--posts", default="dreams", choices=["dreams", "wake"], type=str)
+parser.add_argument("-d", "--days", default=30, type=int)
 args = parser.parse_args()
 
 year = args.year
 posts = args.posts
+days = args.days
 
 # Declare filepaths for importing and exporting.
 derivatives_dir = Path(utils.config["derivatives_directory"])
 import_path = derivatives_dir / "LIWC-22 Results - r-dreams_posts - LIWC Analysis.csv"
-export_path_modl = derivatives_dir / f"{year}_{posts}_anxiety_regr-modl.pkl"
-export_path_vals = derivatives_dir / f"{year}_{posts}_anxiety_regr-vals.tsv"
-export_path_stat = derivatives_dir / f"{year}_{posts}_anxiety_regr-stat.txt"
-export_path_plot = derivatives_dir / f"{year}_{posts}_anxiety_regr-plot.png"
+export_path_modl = derivatives_dir / f"{year}_{posts}_anxiety_regr_{days}-modl.pkl"
+export_path_vals = derivatives_dir / f"{year}_{posts}_anxiety_regr_{days}-vals.tsv"
+export_path_stat = derivatives_dir / f"{year}_{posts}_anxiety_regr_{days}-stat.txt"
+export_path_plot = derivatives_dir / f"{year}_{posts}_anxiety_regr_{days}-plot.png"
 
 # Creates pandas datetimes for start, end, COVID declaration.
 covid_dt = pd.to_datetime(f"{year}-03-11", utc=True)
 start_dt = covid_dt - pd.Timedelta("30D")
-end_dt = covid_dt + pd.Timedelta("30D")
+end_dt = covid_dt + pd.Timedelta(f"{days:d}D")
 
 # Load data.
 data = pd.read_csv(import_path)

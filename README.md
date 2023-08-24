@@ -43,9 +43,9 @@ python samplesize.py        #=> 2020_samplesize-desc.tsv
                             #=> 2020_samplesize-plot.png
                             
 # Dream anxiety time-series interrupted by COVID.
-python anxiety_regr.py      #=> 2020_dreams_anxiety_regr-desc.tsv
-                            #=> 2020_dreams_anxiety_regr-stat.txt
-                            #=> 2020_dreams_anxiety_regr-plot.png/pdf
+python anxiety_regr.py      #=> 2020_dreams_anxiety_regr_30-desc.tsv
+                            #=> 2020_dreams_anxiety_regr_30-stat.txt
+                            #=> 2020_dreams_anxiety_regr_30-plot.png/pdf
 
 # Correlation between r/Dreams anxiety and COVID r/news.
 python anxiety_corr.py      #=> 2020_dreams_anxiety_corr-desc.tsv
@@ -67,4 +67,8 @@ python nightmares_chi2.py --year 2019
 python anxiety_regr.py --posts wake
 python anxiety_corr.py --posts wake
 python nightmares_chi2.py --posts wake
+
+# Run the interrupted time series with longer post-COVID time periods.
+python anxiety_regr.py --year 2020 --posts dreams --days 60
+python anxiety_regr.py --year 2020 --posts dreams --days 90
 ```
