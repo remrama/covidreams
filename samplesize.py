@@ -1,4 +1,5 @@
-"""Plot the amount of r/Dreams posts over time and total.
+"""
+Plot the amount of r/Dreams posts over time and total.
 
 Imports 1 file:
     - raw r/Dreams data

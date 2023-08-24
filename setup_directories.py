@@ -8,8 +8,8 @@ import utils
 config = utils.load_config()
 
 data_directories = [
-    config["source_directory"],         # for raw data, no touchey
-    config["derivatives_directory"],    # for analysis output
+    config["source_directory"],  # for raw data, no touchey
+    config["derivatives_directory"],  # for analysis output
 ]
 
 for directory in data_directories:

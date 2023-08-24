@@ -1,5 +1,5 @@
-"""Scrape a given subreddit.
-"""
+"""Scrape a given subreddit."""
+
 import argparse
 import datetime
 from pathlib import Path

@@ -1,5 +1,5 @@
-"""Helper functions.
-"""
+"""Helper functions."""
+
 import json
 import matplotlib.pyplot as plt
 import pandas as pd
@@ -62,7 +62,7 @@ def load_matplotlib_settings():
     plt.rcParams["axes.labelsize"] = 8
     plt.rcParams["xtick.labelsize"] = 8
     plt.rcParams["ytick.labelsize"] = 8
-    plt.rcParams["axes.linewidth"] = 0.8 # edge line width
+    plt.rcParams["axes.linewidth"] = 0.8  # edge line width
     plt.rcParams["axes.axisbelow"] = True
     # plt.rcParams["axes.grid"] = True
     plt.rcParams["axes.grid.axis"] = "y"
@@ -79,10 +79,10 @@ def load_matplotlib_settings():
     plt.rcParams["legend.edgecolor"] = "black"
     plt.rcParams["legend.fontsize"] = 8
     plt.rcParams["legend.title_fontsize"] = 8
-    plt.rcParams["legend.borderpad"] = .4
-    plt.rcParams["legend.labelspacing"] = .2 # the vertical space between the legend entries
-    plt.rcParams["legend.handlelength"] = 2 # the length of the legend lines
-    plt.rcParams["legend.handleheight"] = .7 # the height of the legend handle
-    plt.rcParams["legend.handletextpad"] = .2 # the space between the legend line and legend text
-    plt.rcParams["legend.borderaxespad"] = .5 # the border between the axes and legend edge
-    plt.rcParams["legend.columnspacing"] = 1 # the space between the legend line and legend text
+    plt.rcParams["legend.borderpad"] = 0.4
+    plt.rcParams["legend.labelspacing"] = 0.2  # the vertical space between the legend entries
+    plt.rcParams["legend.handlelength"] = 2  # the length of the legend lines
+    plt.rcParams["legend.handleheight"] = 0.7  # the height of the legend handle
+    plt.rcParams["legend.handletextpad"] = 0.2  # the space between the legend line and legend text
+    plt.rcParams["legend.borderaxespad"] = 0.5  # the border between the axes and legend edge
+    plt.rcParams["legend.columnspacing"] = 1  # the space between the legend line and legend text
