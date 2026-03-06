@@ -12,6 +12,8 @@ Exports 4 files:
     - correlation stats as a tsv file
     - correlation plot as a png file
     - correlation plot as a pdf file
+    - autocorrelation check plot and stats as a png file
+    - autocorrelation check plot and stats as a pdf file
 """
 import argparse
 from pathlib import Path
@@ -21,6 +23,7 @@ import matplotlib.pyplot as plt
 import pandas as pd
 import pingouin as pg
 import seaborn as sns
+import statsmodels.api as sm
 
 import utils
 
@@ -41,6 +44,7 @@ export_path_vals = derivatives_dir / f"{year}_{posts}_anxiety_corr-vals.tsv"
 export_path_desc = derivatives_dir / f"{year}_{posts}_anxiety_corr-desc.tsv"
 export_path_stat = derivatives_dir / f"{year}_{posts}_anxiety_corr-stat.tsv"
 export_path_plot = derivatives_dir / f"{year}_{posts}_anxiety_corr-plot.png"
+export_path_acor = derivatives_dir / f"{year}_{posts}_anxiety_corr-acor.png"
 
 # Load data.
 data = pd.read_csv(import_path_dreams)
@@ -75,7 +79,7 @@ weekly = (df
     .droplevel(axis=1, level=0)
 )
 
-# Shift dreams forward to account for dream lag.
+# Shift dreams forward to account for retrospective dream reporting.
 weekly["nextDreams"] = weekly["Dreams"].shift(1)
 
 # Get percent change because time-series.
@@ -164,10 +168,10 @@ ax.yaxis.set_minor_locator(plt.MultipleLocator(0.1))
 
 # Draw colorbar.
 cax = fig.add_axes([0.67, 0.25, 0.2, 0.03])
-sm = plt.cm.ScalarMappable(cmap=colormap, norm=colornorm)
+smap = plt.cm.ScalarMappable(cmap=colormap, norm=colornorm)
 cbar_ticks = [colornorm.vmin, colornorm.vmax]
 cbar_ticklabels = [ str(int(x)) for x in cbar_ticks ]
-cbar = fig.colorbar(sm, cax=cax, orientation="horizontal", ticklocation="top", ticks=[])
+cbar = fig.colorbar(smap, cax=cax, orientation="horizontal", ticklocation="top", ticks=[])
 cbar.outline.set_linewidth(.5)
 cax.text(-0.05, .5, cbar_ticklabels[0], ha="right", va="center", transform=cax.transAxes)
 cax.text(1.1, .5, cbar_ticklabels[1], ha="left", va="center", transform=cax.transAxes)
@@ -179,4 +183,64 @@ cbar.set_label(cbar_label)
 # Export plots.
 plt.savefig(export_path_plot)
 plt.savefig(export_path_plot.with_suffix(".pdf"))
+plt.close()
+
+
+#######################################################################################
+################  Stats and Plotting for Autocorrelation/Stationarity  ################
+#######################################################################################
+# Test 4 time-series for autocorrelation and stationarity,
+# both subreddits (news and Dreams) and both stages of processing (raw and percent change).
+
+# Open up figure.
+fig, axes = plt.subplots(2, 2, figsize=(6, 6), constrained_layout=True, sharex=True, sharey=True)
+# Select universal plotting keyword arguments.
+acf_kwargs = dict(alpha=0.05, zero=True, missing="drop", title=None, bartlett_confint=False, clip_on=False)
+
+for col, subreddit in enumerate(["news", "Dreams"]):
+    for row, stage in enumerate(["raw", "pctchange"]):
+        ax = axes[row, col]
+        column = f"{subreddit}_{stage}" if stage == "pctchange" else subreddit
+        data = weekly[column].dropna().to_numpy()
+        title = f"COVID-19 on r/{subreddit}, {stage}"
+        if stage == "pctchange":
+            title = title.replace(stage, r"${\Delta}_{\%}$")
+
+        # Durbin-Watson test for autocorrelation.
+        dw_stat = sm.stats.durbin_watson(data)
+        # Ljung-Box Q-test for autocorrelation.
+        lb_stat, lb_p = sm.stats.acorr_ljungbox(data, lags=1, return_df=False)
+        lb_stat = lb_stat[0]
+        lb_p = lb_p[0]
+        # Augmented Dickey-Fuller test for stationarity.
+        adf_stat, adf_p, _, _, _, _ = sm.tsa.adfuller(data, regression="c", autolag="AIC")
+        # Kwiatkowski-Phillips-Schmidt-Shin test for stationarity.
+        kpss_stat, kpss_p, _, _ = sm.tsa.kpss(data)
+        # Compile all stats into text to write on the plots.
+        strings = [
+            f"Durbin-Watson = {dw_stat:.2f}",
+            f"Ljung-Box = {lb_stat:.1f}, p = {lb_p:.3f}",
+            f"Dickey-Fuller = {adf_stat:.1f}, p = {adf_p:.3f}",
+            f"KPSS = {kpss_stat:.1f}, p = {kpss_p:.3f}",
+        ]
+        strings = [s.replace("p = 0.", "p = .").replace("p = .000", "p < .001") for s in strings]
+        text = "\n".join(strings)
+        text_pass = "\n".join(
+            [
+                "PASS" if 1 < dw_stat < 3 else "FAIL",
+                "PASS" if lb_p > 0.05 else "FAIL",
+                "PASS" if adf_p < 0.05 else "FAIL",
+                "PASS" if kpss_p > 0.05 else "FAIL",
+            ]
+        )
+        # Draw an ACF plot/correlogram to visually inspect autocorrelation.
+        sm.graphics.tsa.plot_acf(data, ax, **acf_kwargs)
+        # Draw text.
+        ax.text(0.5, 0.95, title, ha="center", va="top", weight="bold", transform=ax.transAxes)
+        ax.text(0.83, 0.05, text, ha="right", va="bottom", transform=ax.transAxes)
+        ax.text(0.85, 0.05, text_pass, ha="left", va="bottom", transform=ax.transAxes)
+
+# Export plots.
+plt.savefig(export_path_acor)
+plt.savefig(export_path_acor.with_suffix(".pdf"))
 plt.close()

@@ -51,6 +51,7 @@ python anxiety_regr.py      #=> 2020_dreams_anxiety_regr_30-desc.tsv
 python anxiety_corr.py      #=> 2020_dreams_anxiety_corr-desc.tsv
                             #=> 2020_dreams_anxiety_corr-stat.tsv
                             #=> 2020_dreams_anxiety_corr-plot.png/pdf
+                            #=> 2020_dreams_anxiety_corr-acor.png/pdf
 
 # Nightmare frequency before and after COVID pandemic announcement.
 python nightmares_chi2.py   #=> 2020_dreams_nightmares_chi2-desc.tsv
@@ -71,4 +72,8 @@ python nightmares_chi2.py --posts wake
 # Run the interrupted time series with longer post-COVID time periods.
 python anxiety_regr.py --year 2020 --posts dreams --days 60
 python anxiety_regr.py --year 2020 --posts dreams --days 90
+
+# Run the interrupted time series on nightmare frequency.
+python anxiety_regr.py --year 2020 --posts dreams --days 60 --category nightmares
+python anxiety_regr.py --year 2020 --posts dreams --days 90 --category nightmares
 ```

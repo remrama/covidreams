@@ -1,10 +1,10 @@
 """
 Run Interrupted Time Series analysis to see how
 the declaration of COVID-19 as a global pandemic
-influenced rates of LIWC anxiety words in r/Dreams posts.
+influenced language in r/Dreams posts.
 
 Imports 1 file:
-    - r/Dreams LIWC output, LIWC22 dictionary run on posts
+    - r/Dreams LIWC output
 
 Exports 4 files:
     - model as a pickle file
@@ -12,15 +12,18 @@ Exports 4 files:
     - model stats as a txt file
     - model plot as a png file
     - model plot as a pdf file
+    - autocorrelation check plot and stats as a png file
+    - autocorrelation check plot and stats as a pdf file
 """
 import argparse
 from pathlib import Path
 
 import colorcet as cc
+import numpy as np
 import pandas as pd
 import matplotlib.dates as mdates
 import matplotlib.pyplot as plt
-import statsmodels.formula.api as smf
+import statsmodels.api as sm
 
 import utils
 
@@ -29,19 +32,33 @@ parser = argparse.ArgumentParser()
 parser.add_argument("-y", "--year", default=2020, choices=[2019, 2020], type=int)
 parser.add_argument("-p", "--posts", default="dreams", choices=["dreams", "wake"], type=str)
 parser.add_argument("-d", "--days", default=30, type=int)
+parser.add_argument(
+    "-c", "--category", default="anxiety", choices=["anxiety", "nightmares"], type=str
+)
 args = parser.parse_args()
 
 year = args.year
 posts = args.posts
 days = args.days
+category = args.category
+
+if category == "anxiety":
+    text_source = "posts"
+    text_column = "emo_anx"
+    ylabel = "Anxious dreaming"
+elif category == "nightmares":
+    text_source = "titles"
+    text_column = "nightmare"
+    ylabel = "Nightmare frequency"
 
 # Declare filepaths for importing and exporting.
 derivatives_dir = Path(utils.config["derivatives_directory"])
-import_path = derivatives_dir / "LIWC-22 Results - r-dreams_posts - LIWC Analysis.csv"
-export_path_modl = derivatives_dir / f"{year}_{posts}_anxiety_regr_{days}-modl.pkl"
-export_path_vals = derivatives_dir / f"{year}_{posts}_anxiety_regr_{days}-vals.tsv"
-export_path_stat = derivatives_dir / f"{year}_{posts}_anxiety_regr_{days}-stat.txt"
-export_path_plot = derivatives_dir / f"{year}_{posts}_anxiety_regr_{days}-plot.png"
+import_path = derivatives_dir / f"LIWC-22 Results - r-dreams_{text_source} - LIWC Analysis.csv"
+export_path_modl = derivatives_dir / f"{year}_{posts}_{category}_regr_{days}-modl.pkl"
+export_path_vals = derivatives_dir / f"{year}_{posts}_{category}_regr_{days}-vals.tsv"
+export_path_stat = derivatives_dir / f"{year}_{posts}_{category}_regr_{days}-stat.txt"
+export_path_plot = derivatives_dir / f"{year}_{posts}_{category}_regr_{days}-plot.png"
+export_path_acor = derivatives_dir / f"{year}_{posts}_{category}_regr_{days}-acor.png"
 
 # Creates pandas datetimes for start, end, COVID declaration.
 covid_dt = pd.to_datetime(f"{year}-03-11", utc=True)
@@ -56,16 +73,16 @@ df = utils.preprocess_subreddit(drms)
 # Average per day.
 daily = (df
     .groupby(pd.Grouper(key="timestamp", freq="D"))
-    ["emo_anx"].mean()
+    [text_column].mean()
     .sort_index(ascending=True)
     .to_frame()
 )
 
-# Shift dream anxiety back one day since posts are from dreams occuring the previous day.
-daily["emo_anx"] = daily["emo_anx"].shift(-1)
+# Shift dreams back one day since posts are from dreams occuring the previous day.
+daily[text_column] = daily[text_column].shift(-1)
 
 # Get a smoothed version for plotting.
-daily_smooth = daily.rolling(window=7,center=True)["emo_anx"].mean()
+daily_smooth = daily.rolling(window=7,center=True)[text_column].mean()
 
 # Simplify timestamp index as a new date column.
 daily["date"] = pd.Series(daily.index.to_frame()["timestamp"])
@@ -78,8 +95,49 @@ daily["Time"] = range(1, len(daily) + 1)
 daily["Covid"] = daily["date"].gt(covid_dt).astype(int)
 daily["TimeCovid"] = daily["Covid"].cumsum()
 
+# # Extract pre-intervention data for inspecting autocorrelation and stationarity.
+# preintervention_data = daily.loc[:covid_dt, text_column].to_numpy()
+
+# # Test pre-intervention data for autocorrelation.
+# dw_stat = sm.stats.durbin_watson(preintervention_data)  # Durbin-Watson test
+# lb_stat, lb_p = sm.stats.acorr_ljungbox(preintervention_data, lags=1, return_df=True)  # Ljung-Box Q-test
+# lm_stat, lm_p, f_stat, f_p = sm.stats.acorr_breusch_godfrey(model, nlags=2)  # Breusch-Godfrey test
+# pass_lb = True if lb_p > 0.05 else False
+# pass_bf = True if lm_p > 0.05 else False
+# sm.graphics.tsa.plot_acf(preintervention_data, lags=40)  # ACF plot, visual inspection
+
+# # Test pre-intervention data for stationarity.
+# adf_stat, adf_p, _, _, _, _ = sm.tsa.adfuller(preintervention_data, regression="c", autolag="AIC")  # Augmented Dickey-Fuller test
+# kpss_stat, kpss_p, _, _ = sm.tsa.kpss(preintervention_data)  # Kwiatkowski-Phillips-Schmidt-Shin test
+# pass_adf = True if adf_p < 0.05 else False
+# pass_kpss = True if kpss_p > 0.05 else False
+
+# def inspect_residuals(model, acf_plot=True):
+# """Return results from autocorrelation and stationarity tests of residuals."""
+# # Breusch-Godfrey test for autocorrelation.
+# lm_stat, lm_p, f_stat, f_p = sm.stats.acorr_breusch_godfrey(model, nlags=2)
+# # Durbin-Watson test for autocorrelation.
+# dw_stat = sm.stats.durbin_watson(model.resid)
+# # Ljung-Box Q-test for autocorrelation.
+# lb_stat, lb_p = sm.stats.acorr_ljungbox(model.resid, lags=1, return_df=True)
+# # Augmented Dickey-Fuller test for stationarity.
+# adf_stat, adf_p, _, _, _, _ = sm.tsa.adfuller(preintervention_data, regression="c", autolag="AIC")
+# # Kwiatkowski-Phillips-Schmidt-Shin test for stationarity.
+# kpss_stat, kpss_p, _, _ = sm.tsa.kpss(preintervention_data)
+# # Compile into a single dataframe.
+# results = pd.DataFrame(
+#     {
+#         "data": ["residuals", "residuals", "residuals"],
+#         "measure": ["autocorrelation", "autocorrelation", "autocorrelation"],
+#         "test": ["breusch_godfrey", "ljungbox", "durbin_watson"],
+#         "stat": [lm_stat, lb_stat, dw_stat],
+#         "pval": [lm_p, lb_p, np.nan],
+#     }
+# )
+# model.model.endog[model.model.exog[:,2]==0]
+
 # Run regression.
-model = smf.ols(formula="emo_anx ~ Time + Covid + TimeCovid", data=daily)
+model = sm.formula.ols(formula=f"{text_column} ~ Time + Covid + TimeCovid", data=daily)
 model = model.fit()
 
 # Extract measures for plotting and exporting.
@@ -88,13 +146,13 @@ observed = model.get_prediction().summary_frame(alpha=0.05)
 
 # Run regression on pre-covid to get counterfactual/predicted line.
 daily_precovid = daily.set_index("date").loc[start_dt:covid_dt]
-model_precovid = smf.ols(formula="emo_anx ~ Time + Covid + TimeCovid", data=daily_precovid)
+model_precovid = sm.formula.ols(formula=f"{text_column} ~ Time + Covid + TimeCovid", data=daily_precovid)
 model_precovid = model_precovid.fit()
 daily_postcovid = daily.set_index("date").loc[covid_dt:]
 predicted = model_precovid.predict(daily_postcovid)
 
 # Compile single dataframe with relevant values.
-dat = daily["emo_anx"].rename("data")
+dat = daily[text_column].rename("data")
 datsmooth = daily_smooth.rename("datasmooth")
 obs = (observed
     .drop(columns=[c for c in observed if "obs" in c ])
@@ -175,7 +233,7 @@ ymax = 0.5
 if posts == "wake":
     ymax += 0.1
 ax.set_ylim(ymin, ymax)
-ax.set_ylabel("Anxious dreaming")
+ax.set_ylabel(ylabel)
 ax.yaxis.set_major_locator(plt.MultipleLocator(0.1))
 ax.yaxis.set_minor_locator(plt.MultipleLocator(0.02))
 
@@ -204,4 +262,61 @@ ax.annotate(
 # Export plots.
 plt.savefig(export_path_plot)
 plt.savefig(export_path_plot.with_suffix(".pdf"))
+plt.close()
+
+
+#######################################################################################
+################  Stats and Plotting for Autocorrelation/Stationarity  ################
+#######################################################################################
+# Check autocorrelation and stationarity in residuals.
+
+
+
+# Open up figure.
+fig, ax = plt.subplots(figsize=(3, 3), constrained_layout=True, sharex=True, sharey=True)
+# Select universal plotting keyword arguments.
+data = model.resid
+# Extract pre-intervention data for inspecting autocorrelation and stationarity.
+# data = daily.loc[:covid_dt, text_column].to_numpy()
+data = model.model.endog[model.model.exog[:,2]==0]
+dw_stat = sm.stats.durbin_watson(data)  # Durbin-Watson test
+lb_stat, lb_p = sm.stats.acorr_ljungbox(data, lags=1, return_df=False)  # Ljung-Box Q-test
+lb_stat = lb_stat[0]
+lb_p = lb_p[0]
+lm_stat, lm_p, f_stat, f_p = sm.stats.acorr_breusch_godfrey(model, nlags=2)  # Breusch-Godfrey test
+adf_stat, adf_p, _, _, _, _ = sm.tsa.adfuller(data, regression="c", autolag="AIC")  # Augmented Dickey-Fuller test
+kpss_stat, kpss_p, _, _ = sm.tsa.kpss(data)  # Kwiatkowski-Phillips-Schmidt-Shin test
+# ACF plot, visual inspection
+acf_kwargs = dict(
+    alpha=0.05, zero=True, missing="drop", title=None, bartlett_confint=False, clip_on=False
+)
+strings = [
+    f"Durbin-Watson = {dw_stat:.2f}",
+    f"Ljung-Box = {lb_stat:.1f}, p = {lb_p:.3f}",
+    f"Breusch-Godfrey = {lm_stat:.1f}, p = {lm_p:.3f}",
+    f"Dickey-Fuller = {adf_stat:.1f}, p = {adf_p:.3f}",
+    f"KPSS = {kpss_stat:.1f}, p = {kpss_p:.3f}",
+]
+strings = [s.replace("p = 0.", "p = .").replace("p = .000", "p < .001") for s in strings]
+text = "\n".join(strings)
+text_pass = "\n".join(
+    [
+        "PASS" if 1 < dw_stat < 3 else "FAIL",
+        "PASS" if lb_p > 0.05 else "FAIL",
+        "PASS" if lm_p > 0.05 else "FAIL",
+        "PASS" if adf_p < 0.05 else "FAIL",
+        "PASS" if kpss_p > 0.05 else "FAIL",
+    ]
+)
+# Draw an ACF plot/correlogram to visually inspect autocorrelation.
+sm.graphics.tsa.plot_acf(data, ax, **acf_kwargs)
+# Draw text.
+title = "Autocorrelation and stationarity\nin model residuals"
+ax.text(0.5, 0.95, title, ha="center", va="top", weight="bold", transform=ax.transAxes)
+ax.text(0.83, 0.05, text, ha="right", va="bottom", transform=ax.transAxes)
+ax.text(0.85, 0.05, text_pass, ha="left", va="bottom", transform=ax.transAxes)
+
+# Export plots.
+plt.savefig(export_path_acor)
+plt.savefig(export_path_acor.with_suffix(".pdf"))
 plt.close()
