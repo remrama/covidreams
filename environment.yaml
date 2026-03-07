@@ -5,8 +5,6 @@
 ##
 ## $ conda env create --file environment.yaml
 ##
-## See environment.txt for specifics (e.g., version numbers).
-##
 name: covidreams
 dependencies:
   - ipython                   # development

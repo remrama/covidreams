@@ -15,22 +15,23 @@ Exports 4 files:
     - autocorrelation check plot and stats as a png file
     - autocorrelation check plot and stats as a pdf file
 """
+
 import argparse
 from pathlib import Path
 
 import colorcet as cc
-import numpy as np
-import pandas as pd
 import matplotlib.dates as mdates
 import matplotlib.pyplot as plt
+import pandas as pd
 import statsmodels.api as sm
 
 import utils
 
-
 parser = argparse.ArgumentParser()
 parser.add_argument("-y", "--year", default=2020, choices=[2019, 2020], type=int)
-parser.add_argument("-p", "--posts", default="dreams", choices=["dreams", "wake"], type=str)
+parser.add_argument(
+    "-p", "--posts", default="dreams", choices=["dreams", "wake"], type=str
+)
 parser.add_argument("-d", "--days", default=30, type=int)
 parser.add_argument(
     "-c", "--category", default="anxiety", choices=["anxiety", "nightmares"], type=str
@@ -53,7 +54,9 @@ elif category == "nightmares":
 
 # Declare filepaths for importing and exporting.
 derivatives_dir = Path(utils.config["derivatives_directory"])
-import_path = derivatives_dir / f"LIWC-22 Results - r-dreams_{text_source} - LIWC Analysis.csv"
+import_path = (
+    derivatives_dir / f"LIWC-22 Results - r-dreams_{text_source} - LIWC Analysis.csv"
+)
 export_path_modl = derivatives_dir / f"{year}_{posts}_{category}_regr_{days}-modl.pkl"
 export_path_vals = derivatives_dir / f"{year}_{posts}_{category}_regr_{days}-vals.tsv"
 export_path_stat = derivatives_dir / f"{year}_{posts}_{category}_regr_{days}-stat.txt"
@@ -71,9 +74,9 @@ drms = utils.filter_flair(data, posts=posts)
 df = utils.preprocess_subreddit(drms)
 
 # Average per day.
-daily = (df
-    .groupby(pd.Grouper(key="timestamp", freq="D"))
-    [text_column].mean()
+daily = (
+    df.groupby(pd.Grouper(key="timestamp", freq="D"))[text_column]
+    .mean()
     .sort_index(ascending=True)
     .to_frame()
 )
@@ -82,7 +85,7 @@ daily = (df
 daily[text_column] = daily[text_column].shift(-1)
 
 # Get a smoothed version for plotting.
-daily_smooth = daily.rolling(window=7,center=True)[text_column].mean()
+daily_smooth = daily.rolling(window=7, center=True)[text_column].mean()
 
 # Simplify timestamp index as a new date column.
 daily["date"] = pd.Series(daily.index.to_frame()["timestamp"])
@@ -146,7 +149,9 @@ observed = model.get_prediction().summary_frame(alpha=0.05)
 
 # Run regression on pre-covid to get counterfactual/predicted line.
 daily_precovid = daily.set_index("date").loc[start_dt:covid_dt]
-model_precovid = sm.formula.ols(formula=f"{text_column} ~ Time + Covid + TimeCovid", data=daily_precovid)
+model_precovid = sm.formula.ols(
+    formula=f"{text_column} ~ Time + Covid + TimeCovid", data=daily_precovid
+)
 model_precovid = model_precovid.fit()
 daily_postcovid = daily.set_index("date").loc[covid_dt:]
 predicted = model_precovid.predict(daily_postcovid)
@@ -154,9 +159,8 @@ predicted = model_precovid.predict(daily_postcovid)
 # Compile single dataframe with relevant values.
 dat = daily[text_column].rename("data")
 datsmooth = daily_smooth.rename("datasmooth")
-obs = (observed
-    .drop(columns=[c for c in observed if "obs" in c ])
-    .rename(columns=lambda x: x.replace("mean", "obs"))
+obs = observed.drop(columns=[c for c in observed if "obs" in c]).rename(
+    columns=lambda x: x.replace("mean", "obs")
 )
 pred = predicted.rename("pred")
 model_vals = obs.join(pred).join(dat).join(datsmooth)
@@ -177,8 +181,8 @@ utils.load_matplotlib_settings()
 
 # Select colors.
 colormap = cc.cm.bwy
-data_color = colormap(0.)
-regr_color = colormap(1.)
+data_color = colormap(0.0)
+regr_color = colormap(1.0)
 
 # Convert datetimes to x-axis values.
 start_x = mdates.date2num(start_dt)
@@ -210,8 +214,8 @@ ax.plot(xvals_, yvals_, c=regr_color, lw=1, ls="dotted", label="Predicted")
 # Draw stats results.
 beta = model.params.loc["Covid"]
 pval = model.pvalues.loc["Covid"]
-asterisks = "*" * sum( pval < cutoff for cutoff in [0.05, 0.01, 0.001] )
-stat_txt = asterisks + fr"$B$ = {beta:.2f}"
+asterisks = "*" * sum(pval < cutoff for cutoff in [0.05, 0.01, 0.001])
+stat_txt = asterisks + rf"$B$ = {beta:.2f}"
 # stat_txt = asterisks + fr"$\beta$ = {b:.2f}"
 ax.text(0.95, 0.9, stat_txt, ha="right", va="top", transform=ax.transAxes)
 
@@ -238,7 +242,7 @@ ax.yaxis.set_major_locator(plt.MultipleLocator(0.1))
 ax.yaxis.set_minor_locator(plt.MultipleLocator(0.02))
 
 # Draw COVID-declaration/intervention line.
-who_text = fr"March $11^\mathrm{{th}}$, {year}"
+who_text = rf"March $11^\mathrm{{th}}$, {year}"
 if year == 2020:
     who_text += "\nCOVID-19 declared\na global pandemic"
 xy = (mdates.date2num(covid_dt), ymin)
@@ -253,9 +257,12 @@ arrowprops = dict(
 )
 ax.annotate(
     who_text,
-    ha="right", va="top",
-    xy=xy, xycoords=xy_coords,
-    xytext=xytext, textcoords=xytext_coords,
+    ha="right",
+    va="top",
+    xy=xy,
+    xycoords=xy_coords,
+    xytext=xytext,
+    textcoords=xytext_coords,
     arrowprops=arrowprops,
 )
 
@@ -271,24 +278,36 @@ plt.close()
 # Check autocorrelation and stationarity in residuals.
 
 
-
 # Open up figure.
-fig, ax = plt.subplots(figsize=(3, 3), constrained_layout=True, sharex=True, sharey=True)
+fig, ax = plt.subplots(
+    figsize=(3, 3), constrained_layout=True, sharex=True, sharey=True
+)
 # Select universal plotting keyword arguments.
 data = model.resid
 # Extract pre-intervention data for inspecting autocorrelation and stationarity.
 # data = daily.loc[:covid_dt, text_column].to_numpy()
-data = model.model.endog[model.model.exog[:,2]==0]
+data = model.model.endog[model.model.exog[:, 2] == 0]
 dw_stat = sm.stats.durbin_watson(data)  # Durbin-Watson test
-lb_stat, lb_p = sm.stats.acorr_ljungbox(data, lags=1, return_df=False)  # Ljung-Box Q-test
+lb_stat, lb_p = sm.stats.acorr_ljungbox(
+    data, lags=1, return_df=False
+)  # Ljung-Box Q-test
 lb_stat = lb_stat[0]
 lb_p = lb_p[0]
-lm_stat, lm_p, f_stat, f_p = sm.stats.acorr_breusch_godfrey(model, nlags=2)  # Breusch-Godfrey test
-adf_stat, adf_p, _, _, _, _ = sm.tsa.adfuller(data, regression="c", autolag="AIC")  # Augmented Dickey-Fuller test
+lm_stat, lm_p, f_stat, f_p = sm.stats.acorr_breusch_godfrey(
+    model, nlags=2
+)  # Breusch-Godfrey test
+adf_stat, adf_p, _, _, _, _ = sm.tsa.adfuller(
+    data, regression="c", autolag="AIC"
+)  # Augmented Dickey-Fuller test
 kpss_stat, kpss_p, _, _ = sm.tsa.kpss(data)  # Kwiatkowski-Phillips-Schmidt-Shin test
 # ACF plot, visual inspection
 acf_kwargs = dict(
-    alpha=0.05, zero=True, missing="drop", title=None, bartlett_confint=False, clip_on=False
+    alpha=0.05,
+    zero=True,
+    missing="drop",
+    title=None,
+    bartlett_confint=False,
+    clip_on=False,
 )
 strings = [
     f"Durbin-Watson = {dw_stat:.2f}",
@@ -297,7 +316,9 @@ strings = [
     f"Dickey-Fuller = {adf_stat:.1f}, p = {adf_p:.3f}",
     f"KPSS = {kpss_stat:.1f}, p = {kpss_p:.3f}",
 ]
-strings = [s.replace("p = 0.", "p = .").replace("p = .000", "p < .001") for s in strings]
+strings = [
+    s.replace("p = 0.", "p = .").replace("p = .000", "p < .001") for s in strings
+]
 text = "\n".join(strings)
 text_pass = "\n".join(
     [

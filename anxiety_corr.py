@@ -15,6 +15,7 @@ Exports 4 files:
     - autocorrelation check plot and stats as a png file
     - autocorrelation check plot and stats as a pdf file
 """
+
 import argparse
 from pathlib import Path
 
@@ -27,10 +28,11 @@ import statsmodels.api as sm
 
 import utils
 
-
 parser = argparse.ArgumentParser()
 parser.add_argument("-y", "--year", default=2020, choices=[2019, 2020], type=int)
-parser.add_argument("-p", "--posts", default="dreams", choices=["dreams", "wake"], type=str)
+parser.add_argument(
+    "-p", "--posts", default="dreams", choices=["dreams", "wake"], type=str
+)
 args = parser.parse_args()
 
 year = args.year
@@ -38,8 +40,12 @@ posts = args.posts
 
 # Declare filepaths for importing/exporting.
 derivatives_dir = Path(utils.config["derivatives_directory"])
-import_path_dreams = derivatives_dir / "LIWC-22 Results - r-dreams_posts - LIWC Analysis.csv"
-import_path_news = derivatives_dir / "LIWC-22 Results - r-news_titles - LIWC Analysis.csv"
+import_path_dreams = (
+    derivatives_dir / "LIWC-22 Results - r-dreams_posts - LIWC Analysis.csv"
+)
+import_path_news = (
+    derivatives_dir / "LIWC-22 Results - r-news_titles - LIWC Analysis.csv"
+)
 export_path_vals = derivatives_dir / f"{year}_{posts}_anxiety_corr-vals.tsv"
 export_path_desc = derivatives_dir / f"{year}_{posts}_anxiety_corr-desc.tsv"
 export_path_stat = derivatives_dir / f"{year}_{posts}_anxiety_corr-stat.tsv"
@@ -68,9 +74,10 @@ df = df.loc[df["timestamp"].between(start_date, end_date), :]
 
 # Get weekly averages.
 # (Use weekly averages bc otherwise nightmare frequency has many zeros and pct change breaks.)
-weekly = (df
-    .groupby(["subreddit", pd.Grouper(key="timestamp", freq="W")])
-    [["covid", "emo_anx"]]
+weekly = (
+    df.groupby(["subreddit", pd.Grouper(key="timestamp", freq="W")])[
+        ["covid", "emo_anx"]
+    ]
     .mean()
     .sort_index(ascending=True)
     .unstack(level=0)
@@ -92,7 +99,9 @@ weekly = weekly.join(pct, rsuffix="_pctchange")
 weekly["weeks_after"] = range(len(weekly))
 
 # Run correlation. (rows with NaNs are automatically removed)
-stat = pg.corr(weekly["news_pctchange"], weekly["nextDreams_pctchange"], method="spearman")
+stat = pg.corr(
+    weekly["news_pctchange"], weekly["nextDreams_pctchange"], method="spearman"
+)
 
 # Add number of samples for each, for reporting.
 n_dreams, n_news = df.groupby("subreddit").size().loc[["Dreams", "news"]]
@@ -101,7 +110,9 @@ stat["n_news"] = n_news
 
 # Export stats.
 stat.to_csv(export_path_stat, index_label="method", sep="\t")
-weekly.to_csv(export_path_vals, index_label="week", sep="\t", na_rep="NA", date_format="%Y-%m-%d")
+weekly.to_csv(
+    export_path_vals, index_label="week", sep="\t", na_rep="NA", date_format="%Y-%m-%d"
+)
 
 
 ############################################
@@ -146,8 +157,8 @@ ax = sns.regplot(
 
 # Draw stats results.
 rval, pval = stat.loc["spearman", ["r", "p-val"]]
-asterisks = "*" * sum( pval < cutoff for cutoff in [0.05, 0.01, 0.001] )
-stats_txt = asterisks + fr"$r$ = {rval:.2f}".replace("0.", ".")
+asterisks = "*" * sum(pval < cutoff for cutoff in [0.05, 0.01, 0.001])
+stats_txt = asterisks + rf"$r$ = {rval:.2f}".replace("0.", ".")
 ax.text(0.07, 0.93, stats_txt, ha="left", va="top", transform=ax.transAxes)
 
 # Adjust aesthetics.
@@ -170,11 +181,15 @@ ax.yaxis.set_minor_locator(plt.MultipleLocator(0.1))
 cax = fig.add_axes([0.67, 0.25, 0.2, 0.03])
 smap = plt.cm.ScalarMappable(cmap=colormap, norm=colornorm)
 cbar_ticks = [colornorm.vmin, colornorm.vmax]
-cbar_ticklabels = [ str(int(x)) for x in cbar_ticks ]
-cbar = fig.colorbar(smap, cax=cax, orientation="horizontal", ticklocation="top", ticks=[])
-cbar.outline.set_linewidth(.5)
-cax.text(-0.05, .5, cbar_ticklabels[0], ha="right", va="center", transform=cax.transAxes)
-cax.text(1.1, .5, cbar_ticklabels[1], ha="left", va="center", transform=cax.transAxes)
+cbar_ticklabels = [str(int(x)) for x in cbar_ticks]
+cbar = fig.colorbar(
+    smap, cax=cax, orientation="horizontal", ticklocation="top", ticks=[]
+)
+cbar.outline.set_linewidth(0.5)
+cax.text(
+    -0.05, 0.5, cbar_ticklabels[0], ha="right", va="center", transform=cax.transAxes
+)
+cax.text(1.1, 0.5, cbar_ticklabels[1], ha="left", va="center", transform=cax.transAxes)
 cbar_label = "Weeks after\ndeclaration"
 if year == 2019:
     cbar_label = cbar_label.replace("declaration", "March 11, 2019")
@@ -193,9 +208,18 @@ plt.close()
 # both subreddits (news and Dreams) and both stages of processing (raw and percent change).
 
 # Open up figure.
-fig, axes = plt.subplots(2, 2, figsize=(6, 6), constrained_layout=True, sharex=True, sharey=True)
+fig, axes = plt.subplots(
+    2, 2, figsize=(6, 6), constrained_layout=True, sharex=True, sharey=True
+)
 # Select universal plotting keyword arguments.
-acf_kwargs = dict(alpha=0.05, zero=True, missing="drop", title=None, bartlett_confint=False, clip_on=False)
+acf_kwargs = dict(
+    alpha=0.05,
+    zero=True,
+    missing="drop",
+    title=None,
+    bartlett_confint=False,
+    clip_on=False,
+)
 
 for col, subreddit in enumerate(["news", "Dreams"]):
     for row, stage in enumerate(["raw", "pctchange"]):
@@ -213,7 +237,9 @@ for col, subreddit in enumerate(["news", "Dreams"]):
         lb_stat = lb_stat[0]
         lb_p = lb_p[0]
         # Augmented Dickey-Fuller test for stationarity.
-        adf_stat, adf_p, _, _, _, _ = sm.tsa.adfuller(data, regression="c", autolag="AIC")
+        adf_stat, adf_p, _, _, _, _ = sm.tsa.adfuller(
+            data, regression="c", autolag="AIC"
+        )
         # Kwiatkowski-Phillips-Schmidt-Shin test for stationarity.
         kpss_stat, kpss_p, _, _ = sm.tsa.kpss(data)
         # Compile all stats into text to write on the plots.
@@ -223,7 +249,10 @@ for col, subreddit in enumerate(["news", "Dreams"]):
             f"Dickey-Fuller = {adf_stat:.1f}, p = {adf_p:.3f}",
             f"KPSS = {kpss_stat:.1f}, p = {kpss_p:.3f}",
         ]
-        strings = [s.replace("p = 0.", "p = .").replace("p = .000", "p < .001") for s in strings]
+        strings = [
+            s.replace("p = 0.", "p = .").replace("p = .000", "p < .001")
+            for s in strings
+        ]
         text = "\n".join(strings)
         text_pass = "\n".join(
             [
@@ -236,7 +265,15 @@ for col, subreddit in enumerate(["news", "Dreams"]):
         # Draw an ACF plot/correlogram to visually inspect autocorrelation.
         sm.graphics.tsa.plot_acf(data, ax, **acf_kwargs)
         # Draw text.
-        ax.text(0.5, 0.95, title, ha="center", va="top", weight="bold", transform=ax.transAxes)
+        ax.text(
+            0.5,
+            0.95,
+            title,
+            ha="center",
+            va="top",
+            weight="bold",
+            transform=ax.transAxes,
+        )
         ax.text(0.83, 0.05, text, ha="right", va="bottom", transform=ax.transAxes)
         ax.text(0.85, 0.05, text_pass, ha="left", va="bottom", transform=ax.transAxes)
 

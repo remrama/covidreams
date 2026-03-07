@@ -9,6 +9,7 @@ Exports 3 files:
     - sample size plot as a png file
     - sample size plot as a pdf file
 """
+
 import argparse
 from pathlib import Path
 
@@ -21,7 +22,6 @@ import seaborn as sns
 
 import utils
 
-
 parser = argparse.ArgumentParser()
 parser.add_argument("-y", "--year", default="2020", choices=["2019", "2020"], type=str)
 args = parser.parse_args()
@@ -29,7 +29,7 @@ args = parser.parse_args()
 year = args.year
 
 # Declare filepaths for importing/exporting.
-import_dir = Path(utils.config["source_directory"])
+import_dir = Path(utils.config["sourcedata_directory"])
 export_dir = Path(utils.config["derivatives_directory"])
 import_path = import_dir / "r-dreams.csv"
 export_path_desc = export_dir / f"{year}_samplesize-desc.tsv"
@@ -46,15 +46,16 @@ df = utils.preprocess_subreddit(data)
 
 # Consolidate flair
 dream_flair = ["Short Dream", "Medium Dream", "Long Dream"]
-nondream_flair = [ f for f in df["link_flair_text"].unique() if f not in dream_flair ]
-df["Dream flair"] = (df["link_flair_text"]
+nondream_flair = [f for f in df["link_flair_text"].unique() if f not in dream_flair]
+df["Dream flair"] = (
+    df["link_flair_text"]
     .fillna(value="None")
     .replace(to_replace=nondream_flair, value="None")
 )
 
 # Average post counts per day.
-daily = (df.
-    groupby([pd.Grouper(key="timestamp", freq="D"), "Dream flair"])
+daily = (
+    df.groupby([pd.Grouper(key="timestamp", freq="D"), "Dream flair"])
     .size()
     .unstack()
     .fillna(0)
@@ -68,12 +69,14 @@ covid_dt = pd.to_datetime(f"{year}-03-11", utc=True)
 start_dt = covid_dt - pd.Timedelta("30D")
 end_dt = covid_dt + pd.Timedelta("30D")
 daily = daily.loc[start_dt:end_dt, :]
-daily["Window"] = pd.Series(daily.index).between(covid_dt, end_dt, inclusive="both").to_numpy()
+daily["Window"] = (
+    pd.Series(daily.index).between(covid_dt, end_dt, inclusive="both").to_numpy()
+)
 daily["Window"] = daily["Window"].replace({False: "Pre", True: "Post"})
 
 # Create a dataframe with mean, std, etc. for the number of posts per day.
-desc = (daily
-    .groupby("Window")
+desc = (
+    daily.groupby("Window")
     .agg(["count", "min", "max", "mean", "sum"])
     .stack("Dream flair")
     .sort_index(ascending=False)
@@ -95,9 +98,9 @@ utils.load_matplotlib_settings()
 colormap = cc.cm.blues
 palette = {
     "None": "white",
-    "Short Dream": colormap(1/3),
-    "Medium Dream": colormap(2/3),
-    "Long Dream": colormap(3/3),
+    "Short Dream": colormap(1 / 3),
+    "Medium Dream": colormap(2 / 3),
+    "Long Dream": colormap(3 / 3),
 }
 
 # Open figure.
@@ -118,7 +121,7 @@ ax = sns.histplot(
     hue_order=list(palette),
     bins=bins,
     edgecolor="black",
-    linewidth=.5,
+    linewidth=0.5,
     ax=ax,
     clip_on=False,
 )
@@ -132,7 +135,7 @@ ax.tick_params(axis="x", which="both", direction="out", top=False)
 ax.spines[["left", "right"]].set_position(("outward", 7))
 date_major_locator = mdates.MonthLocator(bymonth=None, bymonthday=1, interval=1)
 date_minor_locator = mdates.DayLocator(bymonthday=None, interval=1)
-date_major_formatter = mdates.DateFormatter(fr"%B $1^\mathrm{{st}}$, {year}")
+date_major_formatter = mdates.DateFormatter(rf"%B $1^\mathrm{{st}}$, {year}")
 ax.xaxis.set_major_locator(date_major_locator)
 ax.xaxis.set_minor_locator(date_minor_locator)
 ax.xaxis.set_major_formatter(date_major_formatter)

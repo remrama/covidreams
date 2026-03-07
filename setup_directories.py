@@ -2,13 +2,15 @@
 Initialize the data directory structure used throughout the rest of the scripts.
 Directory names are specified in the config.json configuration file.
 """
+
 from pathlib import Path
+
 import utils
 
 config = utils.load_config()
 
 data_directories = [
-    config["source_directory"],  # for raw data, no touchey
+    config["sourcedata_directory"],  # for raw data, no touchey
     config["derivatives_directory"],  # for analysis output
 ]
 

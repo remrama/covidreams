@@ -5,11 +5,10 @@ import datetime
 from pathlib import Path
 
 import pandas as pd
-from psaw import PushshiftAPI
 import tqdm
+from psaw import PushshiftAPI
 
 import utils
-
 
 parser = argparse.ArgumentParser()
 parser.add_argument("-r", "--subreddit", required=True, type=str)
@@ -22,7 +21,7 @@ start_date = args.start
 end_date = args.end
 
 # Generate a timestamped filename for exporting.
-export_dir = Path(utils.config["source_directory"])
+export_dir = Path(utils.config["sourcedata_directory"])
 export_basename = f"r-{subreddit}.csv".lower()
 export_path = export_dir / export_basename
 export_path_pickle = export_path.with_suffix(".pkl")
@@ -58,7 +57,9 @@ gen = api.search_submissions(
 )
 
 # Grab all the posts and turn into a dataframe (takes a while).
-df = pd.DataFrame([ thing.d_ for thing in tqdm.tqdm(gen, desc=f"Scraping r/{subreddit}") ])
+df = pd.DataFrame(
+    [thing.d_ for thing in tqdm.tqdm(gen, desc=f"Scraping r/{subreddit}")]
+)
 
 # Reorder columns, including the "created" stamp.
 df = df[["created"] + submission_filters]

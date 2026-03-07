@@ -1,4 +1,4 @@
 {
-    "source_directory": "../sourcedata",
-    "derivatives_directory": "../derivatives"
+    "sourcedata_directory": "../data/sourcedata",
+    "derivatives_directory": "../data/derivatives"
 }

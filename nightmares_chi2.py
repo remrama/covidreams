@@ -11,6 +11,7 @@ Exports 4 files:
     - chi2 plot as a png file
     - chi2 plot as a pdf file
 """
+
 import argparse
 from pathlib import Path
 
@@ -23,7 +24,9 @@ import utils
 
 parser = argparse.ArgumentParser()
 parser.add_argument("-y", "--year", default=2020, choices=[2019, 2020], type=int)
-parser.add_argument("-p", "--posts", default="dreams", choices=["dreams", "wake"], type=str)
+parser.add_argument(
+    "-p", "--posts", default="dreams", choices=["dreams", "wake"], type=str
+)
 args = parser.parse_args()
 
 year = args.year
@@ -93,8 +96,8 @@ utils.load_matplotlib_settings()
 
 # Select colors.
 colormap = cc.cm.cwr
-pre_color = colormap(1.)
-post_color = colormap(0.)
+pre_color = colormap(1.0)
+post_color = colormap(0.0)
 colors = [pre_color, post_color]
 
 xvals = [0, 1]
@@ -111,16 +114,22 @@ bars = ax.bar(xvals, yvals, yerr=evals, color=colors, **bar_kwargs)
 
 # Draw stats results.
 chi2val, pval = stat.set_index("test").loc["pearson", ["chi2", "pval"]]
-asterisks = "*" * sum( pval < cutoff for cutoff in [0.05, 0.01, 0.001] )
-stats_txt = asterisks + fr"$\chi^2$ = {chi2val:.1f}"
+asterisks = "*" * sum(pval < cutoff for cutoff in [0.05, 0.01, 0.001])
+stats_txt = asterisks + rf"$\chi^2$ = {chi2val:.1f}"
 ax.text(0.5, 0.89, stats_txt, ha="left", va="bottom", transform=ax.transAxes)
 hline_kwargs = dict(lw=1, color="k", capstyle="round")
-ax.hlines(y=0.88, xmin=xvals[0], xmax=xvals[1], transform=ax.get_xaxis_transform(), **hline_kwargs)
+ax.hlines(
+    y=0.88,
+    xmin=xvals[0],
+    xmax=xvals[1],
+    transform=ax.get_xaxis_transform(),
+    **hline_kwargs,
+)
 
 # Adjust aesthetics.
 xtick_labels = ["Before declaration", "After declaration"]
 if year == 2019:
-    xtick_labels = [ x.replace("declaration", "March 11") for x in xtick_labels ]
+    xtick_labels = [x.replace("declaration", "March 11") for x in xtick_labels]
 _, _, elines = bars.errorbar
 plt.setp(elines, capstyle="round")
 # ax.margins(x=0.2)

@@ -11,19 +11,22 @@ Imports 2 files:
 Exports 1 file:
     - merged and filtered tsv file
 """
-import argparse
+
 from pathlib import Path
 
 import pandas as pd
 
 import utils
 
-
 # Declare filepaths for importing and exporting.
 derivatives_dir = Path(utils.config["derivatives_directory"])
 import_name_titles = "LIWC-22 Results - r-dreams_titles - LIWC Analysis.csv"
-import_path_posts = derivatives_dir / "LIWC-22 Results - r-dreams_posts - LIWC Analysis.csv"
-import_path_titles = derivatives_dir / "LIWC-22 Results - r-dreams_titles - LIWC Analysis.csv"
+import_path_posts = (
+    derivatives_dir / "LIWC-22 Results - r-dreams_posts - LIWC Analysis.csv"
+)
+import_path_titles = (
+    derivatives_dir / "LIWC-22 Results - r-dreams_titles - LIWC Analysis.csv"
+)
 export_path = derivatives_dir / "example_view.tsv"
 
 # Load data.
