@@ -2,39 +2,32 @@
 
 A research project using [r/Dreams](https://www.reddit.com/r/Dreams) to look at how the first COVID-19 wave impacted dysphoric dreaming.
 
-
-### General files
+## General files
 
 - `environment.yaml` can be used to construct the Python environment
 - `config.json` has general parameter options that apply to multiple scripts
 - `utils.py` has general functions that are useful to multiple scripts
 
-
-### Data collection
+## Data collection
 
 ```bash
 # Generate data directory structure.
-python setup_directories.py     #=> data/sourcedata/
-                                #=> data/derivatives/
-                                #=> data/results/
+python setup_directories.py     #=> sourcedata/
+                                #=> derivatives/
+                                #=> results/
 
 # Scrape posts from r/Dreams and r/news.
-python scrape_reddit.py -r Dreams --start 2019-01-01 --end 2020-12-31   #=> r-dreams.csv
-python scrape_reddit.py -r news --start 2019-01-01 --end 2020-12-31     #=> r-news.csv
+python scrape_reddit.py -r Dreams --start 2019-01-01 --end 2020-12-31   #=> r-dreams.csv[pkl]
+python scrape_reddit.py -r news --start 2019-01-01 --end 2020-12-31     #=> r-news.csv[pkl]
 ```
 
-
-### LIWC
-
-Step out and run LIWC:
-* Run default LIWC-22 dictionary on r/Dreams posts.
-* Run custom nightmares dictionary (_nightmar*_) on r/Dreams post titles.
-* Run custom covid dictionary (_covid*_, _virus_, _mask_, etc.) on r/news post titles.
-
-
-### Data analysis
+## Data analysis
 
 ```bash
+# Run LIWC on raw Reddit data.
+python liwc_run.py          #=> liwc22-dreams.csv
+                            #=> liwc22-news.csv
+
 # Save filtered and sorted file for qualitative inspection.
 python example_view.py      #=> example_view.tsv
 
