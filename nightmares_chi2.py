@@ -40,7 +40,7 @@ export_path_stat = derivatives_dir / f"{year}_{posts}_nightmares_chi2-stat.tsv"
 export_path_plot = derivatives_dir / f"{year}_{posts}_nightmares_chi2-plot.png"
 
 # Load data.
-data = pd.read_csv(import_path)
+data = utils.load_liwc_results(subreddit="dreams")
 drms = utils.filter_flair(data, posts=posts)
 df = utils.preprocess_subreddit(drms, column="title")
 
@@ -85,7 +85,6 @@ stat["n"] = desc["total"].sum()
 # Export stats.
 desc.to_csv(export_path_desc, sep="\t")
 stat.to_csv(export_path_stat, sep="\t", index=False)
-
 
 ############################################
 ################  Plotting  ################

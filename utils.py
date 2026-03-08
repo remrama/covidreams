@@ -1,6 +1,7 @@
 """Helper functions."""
 
 import json
+from pathlib import Path
 
 import matplotlib.pyplot as plt
 import pandas as pd
@@ -10,39 +11,51 @@ with open("./config.json", "r", encoding="utf-8") as f:
     config = json.load(f)
 
 
+def load_liwc_results(subreddit):
+    assert subreddit in {"dreams", "news"}
+    if subreddit == "news":
+        liwc_filepath = Path(config["derivatives_directory"]) / f"liwc-news-covid.csv"
+        liwc = pd.read_csv(liwc_filepath, index_col="Row ID").drop(columns=["Segment"]).rename_axis("id")
+    elif subreddit == "dreams":
+        # Load LIWC emo_anx on selftext and nightmare on title
+        liwc1_filepath = Path(config["derivatives_directory"]) / f"liwc-dreams-anxiety.csv"
+        liwc2_filepath = Path(config["derivatives_directory"]) / f"liwc-dreams-nightmare.csv"
+        liwc1 = pd.read_csv(liwc1_filepath, index_col="Row ID").drop(columns=["Segment"]).rename_axis("id")
+        liwc2 = pd.read_csv(liwc2_filepath, index_col="Row ID").drop(columns=["Segment"]).rename_axis("id")
+        liwc = liwc1.join(liwc2, how="inner", validate="1:1")
+    raw = pd.read_csv(Path(config["sourcedata_directory"]) / f"r-{subreddit}.csv", index_col="id")
+    df = raw.join(liwc, how="inner", validate="1:1")
+    return df
+    
+
 def preprocess_subreddit(df, column="selftext"):
-    assert column in ["selftext", "title"]
-
+    assert column in {"selftext", "title"}
     # Create proper timestamp column.
+    df = df.copy()
     df["timestamp"] = pd.to_datetime(df["created_utc"], unit="s", utc=True)
-
     # Remove deleted posts, removed posts, and posts without any text.
     df = df[~df[column].isin(["[deleted]", "[removed]"])]
     df = df.dropna(subset=[column])
-
     # Remove duplicated posts.
     df = df.drop_duplicates(subset=[column], keep="first")
-
     # Ensure words.
     if "WC" in df:
         df = df.query("WC >= 1")
     else:
         df = df[df[column].str.len().ge(1)]
-
-    return df.reset_index(drop=True)
+    return df
 
 
 def filter_flair(df, posts="dreams"):
     assert posts in ["dreams", "wake"]
-
+    df = df.copy()
     # Reduce to dreams only (unless running control).
     dream_flair = ["Short Dream", "Medium Dream", "Long Dream"]
     post_idx = df["link_flair_text"].isin(dream_flair)
     if posts == "wake":
         post_idx = ~post_idx
-    df = df.loc[post_idx, :]
-
-    return df.reset_index(drop=True)
+    df = df.loc[post_idx, :]  # TODO: check indexing
+    return df
 
 
 def load_matplotlib_settings():

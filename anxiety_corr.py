@@ -38,42 +38,36 @@ args = parser.parse_args()
 year = args.year
 posts = args.posts
 
-# Declare filepaths for importing/exporting.
+# Declare filepaths for importing/exporting
 derivatives_dir = Path(utils.config["derivatives_directory"])
-import_path_dreams = (
-    derivatives_dir / "LIWC-22 Results - r-dreams_posts - LIWC Analysis.csv"
-)
-import_path_news = (
-    derivatives_dir / "LIWC-22 Results - r-news_titles - LIWC Analysis.csv"
-)
 export_path_vals = derivatives_dir / f"{year}_{posts}_anxiety_corr-vals.tsv"
 export_path_desc = derivatives_dir / f"{year}_{posts}_anxiety_corr-desc.tsv"
 export_path_stat = derivatives_dir / f"{year}_{posts}_anxiety_corr-stat.tsv"
 export_path_plot = derivatives_dir / f"{year}_{posts}_anxiety_corr-plot.png"
 export_path_acor = derivatives_dir / f"{year}_{posts}_anxiety_corr-acor.png"
 
-# Load data.
-data = pd.read_csv(import_path_dreams)
-news = pd.read_csv(import_path_news)
+# Load data
+data = utils.load_liwc_results(subreddit="dreams")
+news = utils.load_liwc_results(subreddit="news")
 drms = utils.filter_flair(data, posts=posts)
-df_dreams = utils.preprocess_subreddit(drms)
+df_dreams = utils.preprocess_subreddit(drms, column="selftext")
 df_news = utils.preprocess_subreddit(news, column="title")
 
-# Binarize COVID-19-related news.
+# Binarize COVID-19-related news
 df_news["covid"] = df_news["covid"].gt(0).astype(int)
 
-# Merge dataframes.
+# Merge dataframes
 df = pd.concat([df_dreams, df_news], ignore_index=True)
 
-# Reduce to desired window.
+# Reduce to desired window
 # Have to start post-covid announcement bc otherwise there are crazy outlier jumps
 # where the amount of COVID news covid news goes from like .0001 to a lot.
 start_date = f"{year}-03-12"
 end_date = f"{year}-09-01"
 df = df.loc[df["timestamp"].between(start_date, end_date), :]
 
-# Get weekly averages.
-# (Use weekly averages bc otherwise nightmare frequency has many zeros and pct change breaks.)
+# Get weekly averages
+# (Use weekly averages bc otherwise nightmare frequency has many zeros and pct change breaks)
 weekly = (
     df.groupby(["subreddit", pd.Grouper(key="timestamp", freq="W")])[
         ["covid", "emo_anx"]
@@ -86,50 +80,49 @@ weekly = (
     .droplevel(axis=1, level=0)
 )
 
-# Shift dreams forward to account for retrospective dream reporting.
+# Shift dreams forward to account for retrospective dream reporting
 weekly["nextDreams"] = weekly["Dreams"].shift(1)
 
-# Get percent change because time-series.
+# Get percent change because time-series
 pct = weekly.pct_change()
 
-# Combine into one dataframe.
+# Combine into one dataframe
 weekly = weekly.join(pct, rsuffix="_pctchange")
 
-# Add column indicating number of weeks post-COVID-declaration.
+# Add column indicating number of weeks post-COVID-declaration
 weekly["weeks_after"] = range(len(weekly))
 
-# Run correlation. (rows with NaNs are automatically removed)
+# Run correlation (rows with NaNs are automatically removed)
 stat = pg.corr(
     weekly["news_pctchange"], weekly["nextDreams_pctchange"], method="spearman"
 )
 
-# Add number of samples for each, for reporting.
+# Add number of samples for each, for reporting
 n_dreams, n_news = df.groupby("subreddit").size().loc[["Dreams", "news"]]
 stat["n_rdreams"] = n_dreams
 stat["n_news"] = n_news
 
-# Export stats.
+# Export stats
 stat.to_csv(export_path_stat, index_label="method", sep="\t")
 weekly.to_csv(
     export_path_vals, index_label="week", sep="\t", na_rep="NA", date_format="%Y-%m-%d"
 )
 
-
 ############################################
 ################  Plotting  ################
 ############################################
 
-# Set global matplotlib settings.
+# Set global matplotlib settings
 utils.load_matplotlib_settings()
 
-# Select colormap for scatterplot.
+# Select colormap for scatterplot
 colormap = cc.cm.CET_CBTL3_r
 colornorm = plt.Normalize(vmin=1, vmax=weekly.dropna()["weeks_after"].max())
 
-# Open figure.
+# Open figure
 fig, ax = plt.subplots(figsize=(2, 2))
 
-# Draw data.
+# Draw data
 ax = sns.scatterplot(
     data=weekly,
     x="news_pctchange",
@@ -142,7 +135,7 @@ ax = sns.scatterplot(
     ax=ax,
 )
 
-# Draw correlation line.
+# Draw correlation line
 ax = sns.regplot(
     data=weekly,
     x="news_pctchange",
@@ -155,13 +148,13 @@ ax = sns.regplot(
     ax=ax,
 )
 
-# Draw stats results.
-rval, pval = stat.loc["spearman", ["r", "p-val"]]
+# Draw stats results
+rval, pval = stat.loc["spearman", ["r", "p_val"]]
 asterisks = "*" * sum(pval < cutoff for cutoff in [0.05, 0.01, 0.001])
 stats_txt = asterisks + rf"$r$ = {rval:.2f}".replace("0.", ".")
 ax.text(0.07, 0.93, stats_txt, ha="left", va="top", transform=ax.transAxes)
 
-# Adjust aesthetics.
+# Adjust aesthetics
 ax.set_xlabel(r"COVID-19 news frequency ${\Delta}_{\%}$")
 ax.set_ylabel(r"Next-week anxious dreaming ${\Delta}_{\%}$")
 xlim = 0.35
@@ -177,7 +170,7 @@ ax.xaxis.set_minor_locator(plt.MultipleLocator(0.1))
 ax.yaxis.set_major_locator(plt.MultipleLocator(0.2))
 ax.yaxis.set_minor_locator(plt.MultipleLocator(0.1))
 
-# Draw colorbar.
+# Draw colorbar
 cax = fig.add_axes([0.67, 0.25, 0.2, 0.03])
 smap = plt.cm.ScalarMappable(cmap=colormap, norm=colornorm)
 cbar_ticks = [colornorm.vmin, colornorm.vmax]
@@ -195,11 +188,10 @@ if year == 2019:
     cbar_label = cbar_label.replace("declaration", "March 11, 2019")
 cbar.set_label(cbar_label)
 
-# Export plots.
+# Export plots
 plt.savefig(export_path_plot)
 plt.savefig(export_path_plot.with_suffix(".pdf"))
 plt.close()
-
 
 #######################################################################################
 ################  Stats and Plotting for Autocorrelation/Stationarity  ################
@@ -207,11 +199,11 @@ plt.close()
 # Test 4 time-series for autocorrelation and stationarity,
 # both subreddits (news and Dreams) and both stages of processing (raw and percent change).
 
-# Open up figure.
+# Open up figure
 fig, axes = plt.subplots(
     2, 2, figsize=(6, 6), constrained_layout=True, sharex=True, sharey=True
 )
-# Select universal plotting keyword arguments.
+# Select universal plotting keyword arguments
 acf_kwargs = dict(
     alpha=0.05,
     zero=True,
@@ -230,19 +222,19 @@ for col, subreddit in enumerate(["news", "Dreams"]):
         if stage == "pctchange":
             title = title.replace(stage, r"${\Delta}_{\%}$")
 
-        # Durbin-Watson test for autocorrelation.
+        # Durbin-Watson test for autocorrelation
         dw_stat = sm.stats.durbin_watson(data)
-        # Ljung-Box Q-test for autocorrelation.
-        lb_stat, lb_p = sm.stats.acorr_ljungbox(data, lags=1, return_df=False)
-        lb_stat = lb_stat[0]
-        lb_p = lb_p[0]
-        # Augmented Dickey-Fuller test for stationarity.
+        # Ljung-Box Q-test for autocorrelation
+        ljb = sm.stats.acorr_ljungbox(data, lags=1)
+        lb_stat = ljb.at[1, "lb_stat"]
+        lb_p = ljb.at[1, "lb_pvalue"]
+        # Augmented Dickey-Fuller test for stationarity
         adf_stat, adf_p, _, _, _, _ = sm.tsa.adfuller(
             data, regression="c", autolag="AIC"
         )
-        # Kwiatkowski-Phillips-Schmidt-Shin test for stationarity.
+        # Kwiatkowski-Phillips-Schmidt-Shin test for stationarity
         kpss_stat, kpss_p, _, _ = sm.tsa.kpss(data)
-        # Compile all stats into text to write on the plots.
+        # Compile all stats into text to write on the plots
         strings = [
             f"Durbin-Watson = {dw_stat:.2f}",
             f"Ljung-Box = {lb_stat:.1f}, p = {lb_p:.3f}",
@@ -262,9 +254,9 @@ for col, subreddit in enumerate(["news", "Dreams"]):
                 "PASS" if kpss_p > 0.05 else "FAIL",
             ]
         )
-        # Draw an ACF plot/correlogram to visually inspect autocorrelation.
+        # Draw an ACF plot/correlogram to visually inspect autocorrelation
         sm.graphics.tsa.plot_acf(data, ax, **acf_kwargs)
-        # Draw text.
+        # Draw text
         ax.text(
             0.5,
             0.95,
@@ -277,7 +269,7 @@ for col, subreddit in enumerate(["news", "Dreams"]):
         ax.text(0.83, 0.05, text, ha="right", va="bottom", transform=ax.transAxes)
         ax.text(0.85, 0.05, text_pass, ha="left", va="bottom", transform=ax.transAxes)
 
-# Export plots.
+# Export plots
 plt.savefig(export_path_acor)
 plt.savefig(export_path_acor.with_suffix(".pdf"))
 plt.close()

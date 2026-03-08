@@ -28,19 +28,19 @@ args = parser.parse_args()
 
 year = args.year
 
-# Declare filepaths for importing/exporting.
+# Declare filepaths for importing/exporting
 import_dir = Path(utils.config["sourcedata_directory"])
 export_dir = Path(utils.config["derivatives_directory"])
 import_path = import_dir / "r-dreams.csv"
 export_path_desc = export_dir / f"{year}_samplesize-desc.tsv"
 export_path_plot = export_dir / f"{year}_samplesize-plot.png"
 
-# Creates pandas datetimes for start, end, COVID declaration.
+# Creates pandas datetimes for start, end, COVID declaration
 covid_dt = pd.to_datetime(f"{year}-03-11", utc=True)
 start_dt = covid_dt - pd.Timedelta("30D")
 end_dt = covid_dt + pd.Timedelta("30D")
 
-# Load data.
+# Load data
 data = pd.read_csv(import_path, encoding="utf-8")
 df = utils.preprocess_subreddit(data)
 
@@ -53,7 +53,7 @@ df["Dream flair"] = (
     .replace(to_replace=nondream_flair, value="None")
 )
 
-# Average post counts per day.
+# Average post counts per day
 daily = (
     df.groupby([pd.Grouper(key="timestamp", freq="D"), "Dream flair"])
     .size()
@@ -64,7 +64,7 @@ daily = (
 daily["total"] = daily.sum(axis=1)
 daily["dream"] = daily[dream_flair].sum(axis=1)
 
-# Extract window of interest.
+# Extract window of interest
 covid_dt = pd.to_datetime(f"{year}-03-11", utc=True)
 start_dt = covid_dt - pd.Timedelta("30D")
 end_dt = covid_dt + pd.Timedelta("30D")
@@ -74,27 +74,26 @@ daily["Window"] = (
 )
 daily["Window"] = daily["Window"].replace({False: "Pre", True: "Post"})
 
-# Create a dataframe with mean, std, etc. for the number of posts per day.
+# Create a dataframe with mean, std, etc. for the number of posts per day
 desc = (
     daily.groupby("Window")
     .agg(["count", "min", "max", "mean", "sum"])
-    .stack("Dream flair")
+    .stack("Dream flair", future_stack=True)
     .sort_index(ascending=False)
     .round(2)
 )
 
-# Export descriptives.
+# Export descriptives
 desc.to_csv(export_path_desc, sep="\t")
-
 
 ############################################
 ################  Plotting  ################
 ############################################
 
-# Set global matplotlib settings.
+# Set global matplotlib settings
 utils.load_matplotlib_settings()
 
-# Select colors.
+# Select colors
 colormap = cc.cm.blues
 palette = {
     "None": "white",
@@ -103,15 +102,15 @@ palette = {
     "Long Dream": colormap(3 / 3),
 }
 
-# Open figure.
+# Open figure
 fig, ax = plt.subplots(figsize=(3.8, 1.5))
 
-# Identify histogram bins.
+# Identify histogram bins
 lower_xbound = mdates.date2num(start_dt)
 upper_xbound = mdates.date2num(end_dt + pd.Timedelta("1D"))
 bins = np.arange(lower_xbound, upper_xbound)
 
-# Draw data.
+# Draw data
 ax = sns.histplot(
     df,
     x="timestamp",
@@ -126,7 +125,7 @@ ax = sns.histplot(
     clip_on=False,
 )
 
-# Adjust aesthetics.
+# Adjust aesthetics
 ax.margins(x=0)
 ax.set_ybound(upper=190)
 ax.set_xlabel(None)
@@ -151,7 +150,7 @@ sns.move_legend(
     handleheight=1,
 )
 
-# Export.
+# Export
 plt.savefig(export_path_plot)
 plt.savefig(export_path_plot.with_suffix(".pdf"))
 plt.close()

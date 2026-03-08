@@ -44,36 +44,31 @@ days = args.days
 category = args.category
 
 if category == "anxiety":
-    text_source = "posts"
     text_column = "emo_anx"
     ylabel = "Anxious dreaming"
 elif category == "nightmares":
-    text_source = "titles"
     text_column = "nightmare"
     ylabel = "Nightmare frequency"
 
-# Declare filepaths for importing and exporting.
+# Declare filepaths for importing and exporting
 derivatives_dir = Path(utils.config["derivatives_directory"])
-import_path = (
-    derivatives_dir / f"LIWC-22 Results - r-dreams_{text_source} - LIWC Analysis.csv"
-)
 export_path_modl = derivatives_dir / f"{year}_{posts}_{category}_regr_{days}-modl.pkl"
 export_path_vals = derivatives_dir / f"{year}_{posts}_{category}_regr_{days}-vals.tsv"
 export_path_stat = derivatives_dir / f"{year}_{posts}_{category}_regr_{days}-stat.txt"
 export_path_plot = derivatives_dir / f"{year}_{posts}_{category}_regr_{days}-plot.png"
 export_path_acor = derivatives_dir / f"{year}_{posts}_{category}_regr_{days}-acor.png"
 
-# Creates pandas datetimes for start, end, COVID declaration.
+# Creates pandas datetimes for start, end, COVID declaration
 covid_dt = pd.to_datetime(f"{year}-03-11", utc=True)
 start_dt = covid_dt - pd.Timedelta("30D")
 end_dt = covid_dt + pd.Timedelta(f"{days:d}D")
 
-# Load data.
-data = pd.read_csv(import_path)
+# Load data
+data = utils.load_liwc_results(subreddit="dreams")
 drms = utils.filter_flair(data, posts=posts)
 df = utils.preprocess_subreddit(drms)
 
-# Average per day.
+# Average per day
 daily = (
     df.groupby(pd.Grouper(key="timestamp", freq="D"))[text_column]
     .mean()
@@ -81,27 +76,27 @@ daily = (
     .to_frame()
 )
 
-# Shift dreams back one day since posts are from dreams occuring the previous day.
+# Shift dreams back one day since posts are from dreams occuring the previous day
 daily[text_column] = daily[text_column].shift(-1)
 
-# Get a smoothed version for plotting.
+# Get a smoothed version for plotting
 daily_smooth = daily.rolling(window=7, center=True)[text_column].mean()
 
-# Simplify timestamp index as a new date column.
+# Simplify timestamp index as a new date column
 daily["date"] = pd.Series(daily.index.to_frame()["timestamp"])
 
-# Extract the relevant time window.
+# Extract the relevant time window
 daily = daily.loc[daily["date"].between(start_dt, end_dt, inclusive="both"), :]
 
-# Add columns for regression.
+# Add columns for regression
 daily["Time"] = range(1, len(daily) + 1)
 daily["Covid"] = daily["date"].gt(covid_dt).astype(int)
 daily["TimeCovid"] = daily["Covid"].cumsum()
 
-# # Extract pre-intervention data for inspecting autocorrelation and stationarity.
+# # Extract pre-intervention data for inspecting autocorrelation and stationarity
 # preintervention_data = daily.loc[:covid_dt, text_column].to_numpy()
 
-# # Test pre-intervention data for autocorrelation.
+# # Test pre-intervention data for autocorrelation
 # dw_stat = sm.stats.durbin_watson(preintervention_data)  # Durbin-Watson test
 # lb_stat, lb_p = sm.stats.acorr_ljungbox(preintervention_data, lags=1, return_df=True)  # Ljung-Box Q-test
 # lm_stat, lm_p, f_stat, f_p = sm.stats.acorr_breusch_godfrey(model, nlags=2)  # Breusch-Godfrey test
@@ -109,7 +104,7 @@ daily["TimeCovid"] = daily["Covid"].cumsum()
 # pass_bf = True if lm_p > 0.05 else False
 # sm.graphics.tsa.plot_acf(preintervention_data, lags=40)  # ACF plot, visual inspection
 
-# # Test pre-intervention data for stationarity.
+# # Test pre-intervention data for stationarity
 # adf_stat, adf_p, _, _, _, _ = sm.tsa.adfuller(preintervention_data, regression="c", autolag="AIC")  # Augmented Dickey-Fuller test
 # kpss_stat, kpss_p, _, _ = sm.tsa.kpss(preintervention_data)  # Kwiatkowski-Phillips-Schmidt-Shin test
 # pass_adf = True if adf_p < 0.05 else False
@@ -139,15 +134,15 @@ daily["TimeCovid"] = daily["Covid"].cumsum()
 # )
 # model.model.endog[model.model.exog[:,2]==0]
 
-# Run regression.
+# Run regression
 model = sm.formula.ols(formula=f"{text_column} ~ Time + Covid + TimeCovid", data=daily)
 model = model.fit()
 
-# Extract measures for plotting and exporting.
+# Extract measures for plotting and exporting
 summary = model.summary()
 observed = model.get_prediction().summary_frame(alpha=0.05)
 
-# Run regression on pre-covid to get counterfactual/predicted line.
+# Run regression on pre-covid to get counterfactual/predicted line
 daily_precovid = daily.set_index("date").loc[start_dt:covid_dt]
 model_precovid = sm.formula.ols(
     formula=f"{text_column} ~ Time + Covid + TimeCovid", data=daily_precovid
@@ -156,7 +151,7 @@ model_precovid = model_precovid.fit()
 daily_postcovid = daily.set_index("date").loc[covid_dt:]
 predicted = model_precovid.predict(daily_postcovid)
 
-# Compile single dataframe with relevant values.
+# Compile single dataframe with relevant values
 dat = daily[text_column].rename("data")
 datsmooth = daily_smooth.rename("datasmooth")
 obs = observed.drop(columns=[c for c in observed if "obs" in c]).rename(
@@ -165,7 +160,7 @@ obs = observed.drop(columns=[c for c in observed if "obs" in c]).rename(
 pred = predicted.rename("pred")
 model_vals = obs.join(pred).join(dat).join(datsmooth)
 
-# Export stats.
+# Export stats
 model.save(export_path_modl)
 model_vals.to_csv(export_path_vals, na_rep="NA", sep="\t")
 with open(export_path_stat, "w", encoding="utf-8") as f:
@@ -176,29 +171,29 @@ with open(export_path_stat, "w", encoding="utf-8") as f:
 ################  Plotting  ################
 ############################################
 
-# Set global matplotlib settings.
+# Set global matplotlib settings
 utils.load_matplotlib_settings()
 
-# Select colors.
+# Select colors
 colormap = cc.cm.bwy
 data_color = colormap(0.0)
 regr_color = colormap(1.0)
 
-# Convert datetimes to x-axis values.
+# Convert datetimes to x-axis values
 start_x = mdates.date2num(start_dt)
 covid_x = mdates.date2num(covid_dt)
 end_x = mdates.date2num(end_dt)
 
-# Open the figure.
+# Open the figure
 fig, ax = plt.subplots(figsize=(2.8, 2))
 
-# Draw data.
+# Draw data
 xvals = daily_smooth.index.to_numpy()
 yvals = daily_smooth.to_numpy()
 ax.plot(xvals, yvals, c=data_color, lw=1, label="Data")
 ax.fill_between(xvals, yvals, color=data_color, lw=0, alpha=0.3)
 
-# Draw regression line.
+# Draw regression line
 xvals = observed.index.to_numpy()
 yvals = observed["mean"].to_numpy()
 evals_lo = observed["mean"].sub(observed["mean_se"]).to_numpy()
@@ -206,12 +201,12 @@ evals_hi = observed["mean"].add(observed["mean_se"]).to_numpy()
 ax.plot(xvals, yvals, c=regr_color, lw=1, label="Observed")
 ax.fill_between(xvals, evals_lo, evals_hi, color=regr_color, lw=0, alpha=0.3)
 
-# Draw predicted regression line.
+# Draw predicted regression line
 xvals_ = predicted.index.to_numpy()
 yvals_ = predicted.to_numpy()
 ax.plot(xvals_, yvals_, c=regr_color, lw=1, ls="dotted", label="Predicted")
 
-# Draw stats results.
+# Draw stats results
 beta = model.params.loc["Covid"]
 pval = model.pvalues.loc["Covid"]
 asterisks = "*" * sum(pval < cutoff for cutoff in [0.05, 0.01, 0.001])
@@ -219,10 +214,10 @@ stat_txt = asterisks + rf"$B$ = {beta:.2f}"
 # stat_txt = asterisks + fr"$\beta$ = {b:.2f}"
 ax.text(0.95, 0.9, stat_txt, ha="right", va="top", transform=ax.transAxes)
 
-# Draw legend.
+# Draw legend
 ax.legend(loc="lower left")
 
-# Adjust x-axis aesthetics.
+# Adjust x-axis aesthetics
 ax.set_xbound(lower=start_x, upper=end_x)
 date_major_locator = mdates.MonthLocator(bymonth=None, bymonthday=1, interval=1)
 date_minor_locator = mdates.WeekdayLocator(byweekday=1, interval=1)
@@ -231,7 +226,7 @@ ax.xaxis.set_major_locator(date_major_locator)
 ax.xaxis.set_minor_locator(date_minor_locator)
 ax.xaxis.set_major_formatter(date_major_formatter)
 
-# Adjust y-axis aesthetics.
+# Adjust y-axis aesthetics
 ymin = 0.2
 ymax = 0.5
 if posts == "wake":
@@ -241,7 +236,7 @@ ax.set_ylabel(ylabel)
 ax.yaxis.set_major_locator(plt.MultipleLocator(0.1))
 ax.yaxis.set_minor_locator(plt.MultipleLocator(0.02))
 
-# Draw COVID-declaration/intervention line.
+# Draw COVID-declaration/intervention line
 who_text = rf"March $11^\mathrm{{th}}$, {year}"
 if year == 2020:
     who_text += "\nCOVID-19 declared\na global pandemic"
@@ -266,7 +261,7 @@ ax.annotate(
     arrowprops=arrowprops,
 )
 
-# Export plots.
+# Export plots
 plt.savefig(export_path_plot)
 plt.savefig(export_path_plot.with_suffix(".pdf"))
 plt.close()
@@ -278,21 +273,19 @@ plt.close()
 # Check autocorrelation and stationarity in residuals.
 
 
-# Open up figure.
+# Open up figure
 fig, ax = plt.subplots(
     figsize=(3, 3), constrained_layout=True, sharex=True, sharey=True
 )
-# Select universal plotting keyword arguments.
+# Select universal plotting keyword arguments
 data = model.resid
 # Extract pre-intervention data for inspecting autocorrelation and stationarity.
 # data = daily.loc[:covid_dt, text_column].to_numpy()
 data = model.model.endog[model.model.exog[:, 2] == 0]
 dw_stat = sm.stats.durbin_watson(data)  # Durbin-Watson test
-lb_stat, lb_p = sm.stats.acorr_ljungbox(
-    data, lags=1, return_df=False
-)  # Ljung-Box Q-test
-lb_stat = lb_stat[0]
-lb_p = lb_p[0]
+ljb = sm.stats.acorr_ljungbox(data, lags=1)  # Ljung-Box Q-test
+lb_stat = ljb.at[1, "lb_stat"]
+lb_p = ljb.at[1, "lb_pvalue"]
 lm_stat, lm_p, f_stat, f_p = sm.stats.acorr_breusch_godfrey(
     model, nlags=2
 )  # Breusch-Godfrey test
@@ -329,15 +322,15 @@ text_pass = "\n".join(
         "PASS" if kpss_p > 0.05 else "FAIL",
     ]
 )
-# Draw an ACF plot/correlogram to visually inspect autocorrelation.
+# Draw an ACF plot/correlogram to visually inspect autocorrelation
 sm.graphics.tsa.plot_acf(data, ax, **acf_kwargs)
-# Draw text.
+# Draw text
 title = "Autocorrelation and stationarity\nin model residuals"
 ax.text(0.5, 0.95, title, ha="center", va="top", weight="bold", transform=ax.transAxes)
 ax.text(0.83, 0.05, text, ha="right", va="bottom", transform=ax.transAxes)
 ax.text(0.85, 0.05, text_pass, ha="left", va="bottom", transform=ax.transAxes)
 
-# Export plots.
+# Export plots
 plt.savefig(export_path_acor)
 plt.savefig(export_path_acor.with_suffix(".pdf"))
 plt.close()
