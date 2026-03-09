@@ -29,24 +29,26 @@ import statsmodels.api as sm
 import utils
 
 parser = argparse.ArgumentParser()
-parser.add_argument("-y", "--year", default=2020, choices=[2019, 2020], type=int)
-parser.add_argument(
-    "-p", "--posts", default="dreams", choices=["dreams", "wake"], type=str
-)
+parser.add_argument("--prior", action="store_true", help="Run on 2019 data instead of 2020 data.")
+parser.add_argument("--wake", action="store_true", help="Run on wake text instead of dream text.")
 args = parser.parse_args()
 
-year = args.year
-posts = args.posts
+year = 2019 if args.prior else 2020
+posts = "wake" if args.wake else "dreams"
 
 # Declare filepaths for importing/exporting
 derivatives_dir = Path(utils.config["derivatives_directory"])
-export_parent = derivatives_dir / year
+export_parent = derivatives_dir
+if year == 2019:
+    export_parent = export_parent / str(year)
+if posts == "wake":
+    export_parent = export_parent / posts
 export_parent.mkdir(exist_ok=True)
-export_path_vals = export_parent / f"correlation-vals_{posts}.tsv"
-export_path_desc = export_parent / f"correlation-desc_{posts}.tsv"
-export_path_stat = export_parent / f"correlation-stat_{posts}.tsv"
-export_path_plot = export_parent / f"correlation-plot_{posts}.png"
-export_path_acor = export_parent / f"correlation-acor_{posts}.png"
+export_path_vals = export_parent / "correlation-vals.tsv"
+export_path_desc = export_parent / "correlation-desc.tsv"
+export_path_stat = export_parent / "correlation-stat.tsv"
+export_path_plot = export_parent / "correlation-plot.png"
+export_path_acor = export_parent / "correlation-acor.png"
 
 # Load data
 data = utils.load_liwc_results(subreddit="dreams")
@@ -285,5 +287,4 @@ for col, subreddit in enumerate(["news", "Dreams"]):
 
 # Export plots
 plt.savefig(export_path_acor)
-plt.savefig(export_path_acor.with_suffix(".pdf"))
 plt.close()

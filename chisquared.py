@@ -23,21 +23,24 @@ import pingouin as pg
 import utils
 
 parser = argparse.ArgumentParser()
-parser.add_argument("-y", "--year", default=2020, choices=[2019, 2020], type=int)
-parser.add_argument(
-    "-p", "--posts", default="dreams", choices=["dreams", "wake"], type=str
-)
+parser.add_argument("--prior", action="store_true", help="Run on 2019 data instead of 2020 data.")
+parser.add_argument("--wake", action="store_true", help="Run on wake text instead of dream text.")
 args = parser.parse_args()
 
-year = args.year
-posts = args.posts
+year = 2019 if args.prior else 2020
+posts = "wake" if args.wake else "dreams"
 
 # Declare filepaths for importing and exporting.
 derivatives_dir = Path(utils.config["derivatives_directory"])
-import_path = derivatives_dir / "LIWC-22 Results - r-dreams_titles - LIWC Analysis.csv"
-export_path_desc = derivatives_dir / f"{year}_{posts}_nightmares_chi2-desc.tsv"
-export_path_stat = derivatives_dir / f"{year}_{posts}_nightmares_chi2-stat.tsv"
-export_path_plot = derivatives_dir / f"{year}_{posts}_nightmares_chi2-plot.png"
+export_parent = derivatives_dir
+if year == 2019:
+    export_parent = export_parent / str(year)
+if posts == "wake":
+    export_parent = export_parent / posts
+export_parent.mkdir(exist_ok=True)
+export_path_desc = export_parent / "chisquared-desc.tsv"
+export_path_stat = export_parent / "chisquared-stat.tsv"
+export_path_plot = export_parent / "chisquared-plot.png"
 
 # Load data.
 data = utils.load_liwc_results(subreddit="dreams")

@@ -28,37 +28,33 @@ import statsmodels.api as sm
 import utils
 
 parser = argparse.ArgumentParser()
-parser.add_argument("-y", "--year", default=2020, choices=[2019, 2020], type=int)
-parser.add_argument(
-    "-p", "--posts", default="dreams", choices=["dreams", "wake"], type=str
-)
-parser.add_argument("-d", "--days", default=30, type=int)
-parser.add_argument(
-    "-c", "--category", default="anxiety", choices=["anxiety", "nightmares"], type=str
-)
+parser.add_argument("--prior", action="store_true", help="Run on 2019 data instead of 2020 data.")
+parser.add_argument("--wake", action="store_true", help="Run on wake text instead of dream text.")
+parser.add_argument("--long", action="store_true", help="Run with 60-day window instead of 30.")
 args = parser.parse_args()
 
-year = args.year
-posts = args.posts
-days = args.days
-category = args.category
+year = 2019 if args.prior else 2020
+posts = "wake" if args.wake else "dreams"
+days = 60 if args.long else 30
 
-if category == "anxiety":
-    text_column = "emo_anx"
-    ylabel = "Anxious dreaming"
-elif category == "nightmares":
-    text_column = "nightmare"
-    ylabel = "Nightmare frequency"
+text_column = "emo_anx"
+ylabel = "Anxious dreaming"
 
 # Declare filepaths for importing and exporting
 derivatives_dir = Path(utils.config["derivatives_directory"])
-export_parent = derivatives_dir / year
+export_parent = derivatives_dir
+if year == 2019:
+    export_parent = export_parent / str(year)
+if posts == "wake":
+    export_parent = export_parent / posts
+if days > 30:
+    export_parent = export_parent / str(days)
 export_parent.mkdir(exist_ok=True)
-export_path_modl = export_parent / f"regression-modl_{posts}_{category}.pkl"
-export_path_vals = export_parent / f"regression-vals_{posts}_{category}.tsv"
-export_path_stat = export_parent / f"regression-stat_{posts}_{category}.txt"
-export_path_plot = export_parent / f"regression-plot_{posts}_{category}.png"
-export_path_acor = export_parent / f"regression-acor_{posts}_{category}.png"
+export_path_modl = export_parent / "regression-modl.pkl"
+export_path_vals = export_parent / "regression-vals.tsv"
+export_path_stat = export_parent / "regression-stat.txt"
+export_path_plot = export_parent / "regression-plot.png"
+export_path_acor = export_parent / "regression-acor.png"
 
 # Creates pandas datetimes for start, end, COVID declaration
 covid_dt = pd.to_datetime(f"{year}-03-11", utc=True)
@@ -334,5 +330,4 @@ ax.text(0.85, 0.05, text_pass, ha="left", va="bottom", transform=ax.transAxes)
 
 # Export plots
 plt.savefig(export_path_acor)
-plt.savefig(export_path_acor.with_suffix(".pdf"))
 plt.close()

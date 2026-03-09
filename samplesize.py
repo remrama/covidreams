@@ -23,17 +23,20 @@ import seaborn as sns
 import utils
 
 parser = argparse.ArgumentParser()
-parser.add_argument("-y", "--year", default="2020", choices=["2019", "2020"], type=str)
+parser.add_argument("--prior", action="store_true", help="Run on 2019 data instead of 2020 data.")
 args = parser.parse_args()
 
-year = args.year
+year = 2019 if args.prior else 2020
 
 # Declare filepaths for importing/exporting
 import_dir = Path(utils.config["sourcedata_directory"])
 export_dir = Path(utils.config["derivatives_directory"])
+if year == 2019:
+    export_dir = export_dir / str(year)
+export_dir.mkdir(exist_ok=True)
 import_path = import_dir / "r-dreams.csv"
-export_path_desc = export_dir / f"{year}_samplesize-desc.tsv"
-export_path_plot = export_dir / f"{year}_samplesize-plot.png"
+export_path_desc = export_dir / "samplesize-desc.tsv"
+export_path_plot = export_dir / "samplesize-plot.png"
 
 # Creates pandas datetimes for start, end, COVID declaration
 covid_dt = pd.to_datetime(f"{year}-03-11", utc=True)
