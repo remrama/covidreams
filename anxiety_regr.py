@@ -52,11 +52,13 @@ elif category == "nightmares":
 
 # Declare filepaths for importing and exporting
 derivatives_dir = Path(utils.config["derivatives_directory"])
-export_path_modl = derivatives_dir / f"{year}_{posts}_{category}_regr_{days}-modl.pkl"
-export_path_vals = derivatives_dir / f"{year}_{posts}_{category}_regr_{days}-vals.tsv"
-export_path_stat = derivatives_dir / f"{year}_{posts}_{category}_regr_{days}-stat.txt"
-export_path_plot = derivatives_dir / f"{year}_{posts}_{category}_regr_{days}-plot.png"
-export_path_acor = derivatives_dir / f"{year}_{posts}_{category}_regr_{days}-acor.png"
+export_parent = derivatives_dir / year
+export_parent.mkdir(exist_ok=True)
+export_path_modl = export_parent / f"regression-modl_{posts}_{category}.pkl"
+export_path_vals = export_parent / f"regression-vals_{posts}_{category}.tsv"
+export_path_stat = export_parent / f"regression-stat_{posts}_{category}.txt"
+export_path_plot = export_parent / f"regression-plot_{posts}_{category}.png"
+export_path_acor = export_parent / f"regression-acor_{posts}_{category}.png"
 
 # Creates pandas datetimes for start, end, COVID declaration
 covid_dt = pd.to_datetime(f"{year}-03-11", utc=True)

@@ -23,7 +23,9 @@ def load_liwc_results(subreddit):
         liwc1 = pd.read_csv(liwc1_filepath, index_col="Row ID").drop(columns=["Segment"]).rename_axis("id")
         liwc2 = pd.read_csv(liwc2_filepath, index_col="Row ID").drop(columns=["Segment"]).rename_axis("id")
         liwc = liwc1.join(liwc2, how="inner", validate="1:1")
-    raw = pd.read_csv(Path(config["sourcedata_directory"]) / f"r-{subreddit}.csv", index_col="id")
+    raw_dir = config["derivatives_directory"] if subreddit == "news" else config["sourcedata_directory"]
+    raw_filepath = Path(raw_dir) / f"r-{subreddit}.csv"
+    raw = pd.read_csv(raw_filepath, index_col="id", encoding="utf-8")
     df = raw.join(liwc, how="inner", validate="1:1")
     return df
     

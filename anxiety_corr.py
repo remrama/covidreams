@@ -40,11 +40,13 @@ posts = args.posts
 
 # Declare filepaths for importing/exporting
 derivatives_dir = Path(utils.config["derivatives_directory"])
-export_path_vals = derivatives_dir / f"{year}_{posts}_anxiety_corr-vals.tsv"
-export_path_desc = derivatives_dir / f"{year}_{posts}_anxiety_corr-desc.tsv"
-export_path_stat = derivatives_dir / f"{year}_{posts}_anxiety_corr-stat.tsv"
-export_path_plot = derivatives_dir / f"{year}_{posts}_anxiety_corr-plot.png"
-export_path_acor = derivatives_dir / f"{year}_{posts}_anxiety_corr-acor.png"
+export_parent = derivatives_dir / year
+export_parent.mkdir(exist_ok=True)
+export_path_vals = export_parent / f"correlation-vals_{posts}.tsv"
+export_path_desc = export_parent / f"correlation-desc_{posts}.tsv"
+export_path_stat = export_parent / f"correlation-stat_{posts}.tsv"
+export_path_plot = export_parent / f"correlation-plot_{posts}.png"
+export_path_acor = export_parent / f"correlation-acor_{posts}.png"
 
 # Load data
 data = utils.load_liwc_results(subreddit="dreams")
@@ -152,7 +154,8 @@ ax = sns.regplot(
 rval, pval = stat.loc["spearman", ["r", "p_val"]]
 asterisks = "*" * sum(pval < cutoff for cutoff in [0.05, 0.01, 0.001])
 stats_txt = asterisks + rf"$r$ = {rval:.2f}".replace("0.", ".")
-ax.text(0.07, 0.93, stats_txt, ha="left", va="top", transform=ax.transAxes)
+text_x = 0.6 if year == 2019 else 0.07
+ax.text(text_x, 0.93, stats_txt, ha="left", va="top", transform=ax.transAxes)
 
 # Adjust aesthetics
 ax.set_xlabel(r"COVID-19 news frequency ${\Delta}_{\%}$")
@@ -161,12 +164,23 @@ xlim = 0.35
 ylim = 0.6
 if posts == "wake":
     ylim += 0.2
-assert not weekly["news_pctchange"].abs().ge(xlim).any()
+# Bizarre situation where there is an outlier week in 2019 that coincidentally has tones of covid words in it.
+if year == 2019:
+    xmin, xmax = -0.75, 1.9
+    assert not weekly["news_pctchange"].le(xmin).any()
+    assert not weekly["news_pctchange"].ge(xmax).any()
+    ax.set_xlim(xmin, xmax)
+else:
+    assert not weekly["news_pctchange"].abs().ge(xlim).any()
+    ax.set_xlim(-xlim, xlim)
 assert not weekly["nextDreams_pctchange"].abs().ge(ylim).any()
-ax.set_xlim(-xlim, xlim)
 ax.set_ylim(-ylim, ylim)
-ax.xaxis.set_major_locator(plt.MultipleLocator(0.2))
-ax.xaxis.set_minor_locator(plt.MultipleLocator(0.1))
+if year == 2019:
+    ax.xaxis.set_major_locator(plt.MultipleLocator(0.4))
+    ax.xaxis.set_minor_locator(plt.MultipleLocator(0.2))
+else:
+    ax.xaxis.set_major_locator(plt.MultipleLocator(0.2))
+    ax.xaxis.set_minor_locator(plt.MultipleLocator(0.1))
 ax.yaxis.set_major_locator(plt.MultipleLocator(0.2))
 ax.yaxis.set_minor_locator(plt.MultipleLocator(0.1))
 

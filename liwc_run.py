@@ -8,7 +8,7 @@ import utils
 
 sourcedata_dir = Path(utils.config["sourcedata_directory"])
 derivatives_dir = Path(utils.config["derivatives_directory"])
-dic_filepath = sourcedata_dir / "my.dic"
+dic_filepath = sourcedata_dir / "custom.dic"
 
 iterations = [
     ("liwc-dreams-anxiety.csv", "dreams", "selftext", "LIWC22", "WC,emo_anx"),
@@ -18,14 +18,16 @@ iterations = [
 
 for keys in iterations:
     export_name, subreddit, column, dictionary, include_categories = keys
-    import_path = sourcedata_dir / f"r-{subreddit}.csv"
+    directory = derivatives_dir if subreddit == "news" else sourcedata_dir
+    import_path = directory / f"r-{subreddit}.csv"
     export_path = derivatives_dir / export_name
     if dictionary == "custom.dic":
         dictionary = str(dic_filepath)
     if column == "title":
-        column_indices = 14
+        column_indices = 12 if subreddit == "news" else 14
     elif column == "selftext":
-        column_indices = 15
+        column_indices = 9 if subreddit == "news" else 15
+    row_id_indices = 4 if subreddit == "news" else 5
     cmd = [
         sys.executable,
         "liwc.py",
@@ -41,7 +43,7 @@ for keys in iterations:
         "--dictionary",
         dictionary,
         "--row-id-indices",
-        "5",
+        str(row_id_indices),
         "--precision",
         "2",
         "--auto-open",
