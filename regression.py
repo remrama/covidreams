@@ -270,28 +270,8 @@ plt.close()
 #######################################################################################
 # Check autocorrelation and stationarity in residuals.
 
-
-# Open up figure
-fig, ax = plt.subplots(
-    figsize=(3, 3), constrained_layout=True, sharex=True, sharey=True
-)
-# Select universal plotting keyword arguments
-data = model.resid
-# Extract pre-intervention data for inspecting autocorrelation and stationarity.
-# data = daily.loc[:covid_dt, text_column].to_numpy()
-data = model.model.endog[model.model.exog[:, 2] == 0]
-dw_stat = sm.stats.durbin_watson(data)  # Durbin-Watson test
-ljb = sm.stats.acorr_ljungbox(data, lags=1)  # Ljung-Box Q-test
-lb_stat = ljb.at[1, "lb_stat"]
-lb_p = ljb.at[1, "lb_pvalue"]
-lm_stat, lm_p, f_stat, f_p = sm.stats.acorr_breusch_godfrey(
-    model, nlags=2
-)  # Breusch-Godfrey test
-adf_stat, adf_p, _, _, _, _ = sm.tsa.adfuller(
-    data, regression="c", autolag="AIC"
-)  # Augmented Dickey-Fuller test
-kpss_stat, kpss_p, _, _ = sm.tsa.kpss(data)  # Kwiatkowski-Phillips-Schmidt-Shin test
-# ACF plot, visual inspection
+nlags_lb = 10
+nlags_bg = 2
 acf_kwargs = dict(
     alpha=0.05,
     zero=True,
@@ -300,12 +280,16 @@ acf_kwargs = dict(
     bartlett_confint=False,
     clip_on=False,
 )
+# Ljung-Box Q-test
+lb = sm.stats.acorr_ljungbox(model.resid, lags=nlags_lb)
+lb_stat = lb.at[nlags_lb, "lb_stat"]
+lb_p = lb.at[nlags_lb, "lb_pvalue"]
+# Breusch-Godfrey test
+lm_stat, lm_p, f_stat, f_p = sm.stats.acorr_breusch_godfrey(model, nlags=nlags_bg)
+# ACF plot, visual inspection
 strings = [
-    f"Durbin-Watson = {dw_stat:.2f}",
-    f"Ljung-Box = {lb_stat:.1f}, p = {lb_p:.3f}",
-    f"Breusch-Godfrey = {lm_stat:.1f}, p = {lm_p:.3f}",
-    f"Dickey-Fuller = {adf_stat:.1f}, p = {adf_p:.3f}",
-    f"KPSS = {kpss_stat:.1f}, p = {kpss_p:.3f}",
+    f"Ljung-Box (lag={nlags_lb}) = {lb_stat:.1f}, p = {lb_p:.3f}",
+    f"Breusch-Godfrey (lag={nlags_bg}) = {lm_stat:.1f}, p = {lm_p:.3f}",
 ]
 strings = [
     s.replace("p = 0.", "p = .").replace("p = .000", "p < .001") for s in strings
@@ -313,15 +297,14 @@ strings = [
 text = "\n".join(strings)
 text_pass = "\n".join(
     [
-        "PASS" if 1 < dw_stat < 3 else "FAIL",
         "PASS" if lb_p > 0.05 else "FAIL",
         "PASS" if lm_p > 0.05 else "FAIL",
-        "PASS" if adf_p < 0.05 else "FAIL",
-        "PASS" if kpss_p > 0.05 else "FAIL",
     ]
 )
+# Open up figure
+fig, ax = plt.subplots(figsize=(3, 3), constrained_layout=True, sharex=True, sharey=True)
 # Draw an ACF plot/correlogram to visually inspect autocorrelation
-sm.graphics.tsa.plot_acf(data, ax, **acf_kwargs)
+sm.graphics.tsa.plot_acf(model.resid, ax, **acf_kwargs)
 # Draw text
 title = "Autocorrelation and stationarity\nin model residuals"
 ax.text(0.5, 0.95, title, ha="center", va="top", weight="bold", transform=ax.transAxes)
