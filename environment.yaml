@@ -1,10 +1,3 @@
-##
-## All scripts were run from a conda environment made from this file.
-##
-## miniconda  ----  conda version 22.11.1
-##
-## $ conda env create --file environment.yaml
-##
 name: covidreams
 dependencies:
   - ipython                   # development
@@ -17,6 +10,8 @@ dependencies:
   - matplotlib                # data visualization
   - seaborn                   # data visualization
   - conda-forge::colorcet     # data visualization - colormaps
+  - conda-forge::svgutils     # data visualization - figure composition
+  - conda-forge::cairosvg     # data visualization - figure composition
   - pip
   - pip:
     - psaw                    # data collection - Reddit API
