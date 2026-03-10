@@ -2,14 +2,12 @@
 Merge LIWC results with raw data, preprocess/filter, and consolidate flair.
 """
 
-from pathlib import Path
-
 import pandas as pd
 
 import utils
 
-sourcedata_dir = Path(utils.config["sourcedata_directory"])
-derivatives_dir = Path(utils.config["derivatives_directory"])
+sourcedata_dir = utils.config["sourcedata_directory"]
+derivatives_dir = utils.config["derivatives_directory"]
 
 
 def read_raw_reddit(filepath):

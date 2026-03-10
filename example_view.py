@@ -5,15 +5,13 @@ The exported file makes it easier to qualitatively inspect how well
 the automated measures perform.
 """
 
-from pathlib import Path
-
 import pandas as pd
 
 import utils
 
 # Declare filepaths for importing and exporting
-derivatives_dir = Path(utils.config["derivatives_directory"])
-sourcedata_dir = Path(utils.config["sourcedata_directory"])
+derivatives_dir = utils.config["derivatives_directory"]
+sourcedata_dir = utils.config["sourcedata_directory"]
 import_path_raw = sourcedata_dir / "r-dreams.csv"
 export_path = derivatives_dir / "example_view.csv"
 

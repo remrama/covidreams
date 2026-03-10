@@ -2,14 +2,12 @@
 Merge the news 2020 file with news 2019 file.
 """
 
-from pathlib import Path
-
 import pandas as pd
 
 import utils
 
-sourcedata_dir = Path(utils.config["sourcedata_directory"])
-derivatives_dir = Path(utils.config["derivatives_directory"])
+sourcedata_dir = utils.config["sourcedata_directory"]
+derivatives_dir = utils.config["derivatives_directory"]
 
 export_path = derivatives_dir / "r-news.csv"
 

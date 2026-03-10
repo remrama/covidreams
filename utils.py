@@ -10,13 +10,19 @@ import pandas as pd
 with open("./config.json", "r", encoding="utf-8") as f:
     config = json.load(f)
 
+for key, value in config.items():
+    if key.endswith("_directory"):
+        config[key] = Path(value)
+        if not config[key].is_dir():
+            config[key].mkdir(parents=True, exist_ok=False)
+
 
 def read_liwc_csv(subreddit, dream_filter=None):
     assert subreddit in {"dreams", "news"}
     if dream_filter is not None:
         assert subreddit == "dreams"
     read_csv_kwargs = dict(index_col="id", encoding="utf-8", parse_dates=["timestamp"])
-    import_path = Path(config["derivatives_directory"]) / f"r-{subreddit}-liwc.csv"
+    import_path = config["derivatives_directory"] / f"r-{subreddit}-liwc.csv"
     df = pd.read_csv(import_path, **read_csv_kwargs)
     if dream_filter is not None:
         df = filter_dreams(df, dream_filter)
@@ -24,18 +30,28 @@ def read_liwc_csv(subreddit, dream_filter=None):
 
 
 def filter_dreams(dataframe, filter):
-    assert filter in {"dreams", "wake"}
+    assert filter in {"dreams", "nondreams"}
     dream_filter = dataframe["flair"].isin(config["dream_flair"])
     if filter == "dreams":
         df = dataframe[dream_filter]
-    elif filter == "wake":
+    elif filter == "nondreams":
         df = dataframe[~dream_filter]
     return df
 
 
+def save_and_close_fig(export_path, close=True, include_svg=False):
+    assert export_path.suffix == ".png"
+    plt.savefig(export_path, dpi=300)
+    if include_svg:
+        plt.savefig(export_path.with_suffix(".svg"), dpi=96)
+    if close:
+        plt.close()
+    return
+
+
 def load_matplotlib_settings():
     # plt.rcParams["interactive"] = True
-    plt.rcParams["savefig.dpi"] = 300
+    # plt.rcParams["savefig.dpi"] = 300
     plt.rcParams["figure.constrained_layout.use"] = True
     plt.rcParams["font.family"] = "Times New Roman"
     # plt.rcParams["font.sans-serif"] = "Arial"

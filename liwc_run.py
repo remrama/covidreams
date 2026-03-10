@@ -2,12 +2,11 @@
 
 import subprocess
 import sys
-from pathlib import Path
 
 import utils
 
-sourcedata_dir = Path(utils.config["sourcedata_directory"])
-derivatives_dir = Path(utils.config["derivatives_directory"])
+sourcedata_dir = utils.config["sourcedata_directory"]
+derivatives_dir = utils.config["derivatives_directory"]
 dic_filepath = sourcedata_dir / "custom.dic"
 
 iterations = [

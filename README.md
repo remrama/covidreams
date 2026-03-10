@@ -11,9 +11,6 @@ A research project using [r/Dreams](https://www.reddit.com/r/Dreams) to look at 
 ## Data collection
 
 ```bash
-# Generate data directory structure
-python setup_directories.py
-
 # Scrape posts from r/Dreams and r/news
 python scrape_reddit.py -r Dreams --start 2019-01-01 --end 2020-12-31
 python scrape_reddit.py -r news --start 2019-01-01 --end 2020-12-31
@@ -38,16 +35,16 @@ python chisquared.py
 python correlation.py
 
 # Run the same analyses using data from 2019 to control for seasonality
-python samplesize.py --prior
-python regression.py --prior
-python chisquared.py --prior
-python correlation.py --prior
+python samplesize.py --prioryear
+python regression.py --prioryear
+python chisquared.py --prioryear
+python correlation.py --prioryear
 
 # Run the same analyses using only non-flaired posts to control for daily language
-python regression.py --wake
-python chisquared.py --wake
-python correlation.py --wake
+python regression.py --nondreams
+python chisquared.py --nondreams
+python correlation.py --nondreams
 
 # Run the interrupted time series with longer post-COVID time period
-python regression.py --long
+python regression.py --longerwindow
 ```

@@ -2,15 +2,13 @@
 Compile plots into a multi-panel figure
 """
 
-from pathlib import Path
-
 import cairosvg
 import svgutils.compose as sc
 
 import utils
 
 # Declare filepaths for importing/exporting
-derivatives_dir = Path(utils.config["derivatives_directory"])
+derivatives_dir = utils.config["derivatives_directory"]
 export_path = derivatives_dir / "figure.svg"
 regr_path = derivatives_dir / "regression-plot.svg"
 chi2_path = derivatives_dir / "chisquared-plot.svg"

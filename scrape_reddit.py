@@ -2,7 +2,6 @@
 
 import argparse
 import datetime
-from pathlib import Path
 
 import pandas as pd
 import tqdm
@@ -21,7 +20,7 @@ start_date = args.start
 end_date = args.end
 
 # Generate a timestamped filename for exporting.
-export_dir = Path(utils.config["sourcedata_directory"])
+export_dir = utils.config["sourcedata_directory"]
 export_basename = f"r-{subreddit}.csv".lower()
 export_path = export_dir / export_basename
 export_path_pickle = export_path.with_suffix(".pkl")

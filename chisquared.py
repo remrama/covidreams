@@ -13,7 +13,6 @@ Exports 4 files:
 """
 
 import argparse
-from pathlib import Path
 
 import colorcet as cc
 import matplotlib.pyplot as plt
@@ -24,30 +23,30 @@ import utils
 
 parser = argparse.ArgumentParser()
 parser.add_argument(
-    "--prior", action="store_true", help="Run on 2019 data instead of 2020 data."
+    "--prioryear", action="store_true", help="Run on 2019 data instead of 2020 data."
 )
 parser.add_argument(
-    "--wake", action="store_true", help="Run on wake text instead of dream text."
+    "--nondreams", action="store_true", help="Run on wake text instead of dream text."
 )
 args = parser.parse_args()
 
-year = 2019 if args.prior else 2020
-posts = "wake" if args.wake else "dreams"
+year = 2019 if args.prioryear else 2020
+flair = "nondreams" if args.nondreams else "dreams"
 
 # Declare filepaths for importing and exporting
-derivatives_dir = Path(utils.config["derivatives_directory"])
+derivatives_dir = utils.config["derivatives_directory"]
 export_parent = derivatives_dir
 if year == 2019:
-    export_parent = export_parent / str(year)
-if posts == "wake":
-    export_parent = export_parent / posts
+    export_parent = export_parent / "prioryear"
+if flair == "nondreams":
+    export_parent = export_parent / "nondreams"
 export_parent.mkdir(exist_ok=True)
 export_path_desc = export_parent / "chisquared-desc.tsv"
 export_path_stat = export_parent / "chisquared-stat.tsv"
 export_path_plot = export_parent / "chisquared-plot.png"
 
 # Load data
-df = utils.read_liwc_csv(subreddit="dreams", dream_filter=posts)
+df = utils.read_liwc_csv(subreddit="dreams", dream_filter=flair)
 
 # Creates pandas datetimes for start, end, COVID declaration
 covid_dt = pd.to_datetime(f"{year}-03-11", utc=True)
@@ -147,6 +146,4 @@ ax.text(1 - bar_hw, 0.2, xtick_labels[1], rotation=90, ha="right", va="bottom")
 ax.set_xlim(-0.8, 1.5)
 
 # Export plots
-plt.savefig(export_path_plot)
-plt.savefig(export_path_plot.with_suffix(".svg"), dpi=96)
-plt.close()
+utils.save_and_close_fig(export_path_plot, include_svg=True)

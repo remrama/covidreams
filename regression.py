@@ -11,13 +11,11 @@ Exports 4 files:
     - model data values as a tsv file
     - model stats as a txt file
     - model plot as a png file
-    - model plot as a pdf file
+    - model plot as a svg file
     - autocorrelation check plot and stats as a png file
-    - autocorrelation check plot and stats as a pdf file
 """
 
 import argparse
-from pathlib import Path
 
 import colorcet as cc
 import matplotlib.dates as mdates
@@ -29,32 +27,32 @@ import utils
 
 parser = argparse.ArgumentParser()
 parser.add_argument(
-    "--prior", action="store_true", help="Run on 2019 data instead of 2020 data."
+    "--prioryear", action="store_true", help="Run on 2019 data instead of 2020 data."
 )
 parser.add_argument(
-    "--wake", action="store_true", help="Run on wake text instead of dream text."
+    "--nondreams", action="store_true", help="Run on wake text instead of dream text."
 )
 parser.add_argument(
-    "--long", action="store_true", help="Run with 60-day window instead of 30."
+    "--longerwindow", action="store_true", help="Run with 60-day window instead of 30."
 )
 args = parser.parse_args()
 
-year = 2019 if args.prior else 2020
-posts = "wake" if args.wake else "dreams"
-days = 60 if args.long else 30
+year = 2019 if args.prioryear else 2020
+flair = "nondreams" if args.nondreams else "dreams"
+days = 60 if args.longerwindow else 30
 
 text_column = "anxiety"
 ylabel = "Anxious dreaming"
 
 # Declare filepaths for importing and exporting
-derivatives_dir = Path(utils.config["derivatives_directory"])
+derivatives_dir = utils.config["derivatives_directory"]
 export_parent = derivatives_dir
 if year == 2019:
-    export_parent = export_parent / str(year)
-if posts == "wake":
-    export_parent = export_parent / posts
-if days > 30:
-    export_parent = export_parent / str(days)
+    export_parent = export_parent / "prioryear"
+if flair == "nondreams":
+    export_parent = export_parent / "nondreams"
+if days == 60:
+    export_parent = export_parent / "longerwindow"
 export_parent.mkdir(exist_ok=True)
 export_path_modl = export_parent / "regression-modl.pkl"
 export_path_vals = export_parent / "regression-vals.tsv"
@@ -68,7 +66,7 @@ start_dt = covid_dt - pd.Timedelta("30D")
 end_dt = covid_dt + pd.Timedelta(f"{days:d}D")
 
 # Load data
-df = utils.read_liwc_csv(subreddit="dreams", dream_filter=posts)
+df = utils.read_liwc_csv(subreddit="dreams", dream_filter=flair)
 
 # Average per day
 daily = (
@@ -230,7 +228,7 @@ ax.xaxis.set_major_formatter(date_major_formatter)
 # Adjust y-axis aesthetics
 ymin = 0.2
 ymax = 0.5
-if posts == "wake":
+if flair == "nondreams":
     ymax += 0.1
 ax.set_ylim(ymin, ymax)
 ax.set_ylabel(ylabel)
@@ -263,9 +261,7 @@ ax.annotate(
 )
 
 # Export plots
-plt.savefig(export_path_plot)
-plt.savefig(export_path_plot.with_suffix(".svg"), dpi=96)
-plt.close()
+utils.save_and_close_fig(export_path_plot, include_svg=True)
 
 #######################################################################################
 ################  Stats and Plotting for Autocorrelation/Stationarity  ################
@@ -316,5 +312,4 @@ ax.text(0.83, 0.05, text, ha="right", va="bottom", transform=ax.transAxes)
 ax.text(0.85, 0.05, text_pass, ha="left", va="bottom", transform=ax.transAxes)
 
 # Export plots
-plt.savefig(export_path_acor)
-plt.close()
+utils.save_and_close_fig(export_path_acor)

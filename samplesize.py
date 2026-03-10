@@ -11,7 +11,6 @@ Exports 3 files:
 """
 
 import argparse
-from pathlib import Path
 
 import colorcet as cc
 import matplotlib.dates as mdates
@@ -24,17 +23,17 @@ import utils
 
 parser = argparse.ArgumentParser()
 parser.add_argument(
-    "--prior", action="store_true", help="Run on 2019 data instead of 2020 data."
+    "--prioryear", action="store_true", help="Run on 2019 data instead of 2020 data."
 )
 args = parser.parse_args()
 
 year = 2019 if args.prior else 2020
 
 # Declare filepaths for importing/exporting
-import_dir = Path(utils.config["sourcedata_directory"])
-export_dir = Path(utils.config["derivatives_directory"])
+import_dir = utils.config["sourcedata_directory"]
+export_dir = utils.config["derivatives_directory"]
 if year == 2019:
-    export_dir = export_dir / str(year)
+    export_dir = export_dir / "prioryear"
 export_dir.mkdir(exist_ok=True)
 export_path_desc = export_dir / "samplesize-desc.tsv"
 export_path_plot = export_dir / "samplesize-plot.png"
@@ -148,6 +147,4 @@ sns.move_legend(
 )
 
 # Export
-plt.savefig(export_path_plot)
-plt.savefig(export_path_plot.with_suffix(".svg"), dpi=96)
-plt.close()
+utils.save_and_close_fig(export_path_plot, include_svg=True)

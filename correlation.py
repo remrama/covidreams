@@ -17,7 +17,6 @@ Exports 4 files:
 """
 
 import argparse
-from pathlib import Path
 
 import colorcet as cc
 import matplotlib.pyplot as plt
@@ -30,23 +29,23 @@ import utils
 
 parser = argparse.ArgumentParser()
 parser.add_argument(
-    "--prior", action="store_true", help="Run on 2019 data instead of 2020 data."
+    "--prioryear", action="store_true", help="Run on 2019 data instead of 2020 data."
 )
 parser.add_argument(
-    "--wake", action="store_true", help="Run on wake text instead of dream text."
+    "--nondreams", action="store_true", help="Run on wake text instead of dream text."
 )
 args = parser.parse_args()
 
-year = 2019 if args.prior else 2020
-posts = "wake" if args.wake else "dreams"
+year = 2019 if args.prioryear else 2020
+flair = "nondreams" if args.nondreams else "dreams"
 
 # Declare filepaths for importing/exporting
-derivatives_dir = Path(utils.config["derivatives_directory"])
+derivatives_dir = utils.config["derivatives_directory"]
 export_parent = derivatives_dir
 if year == 2019:
-    export_parent = export_parent / str(year)
-if posts == "wake":
-    export_parent = export_parent / posts
+    export_parent = export_parent / "prioryear"
+if flair == "nondreams":
+    export_parent = export_parent / "nondreams"
 export_parent.mkdir(exist_ok=True)
 export_path_vals = export_parent / "correlation-vals.tsv"
 export_path_desc = export_parent / "correlation-desc.tsv"
@@ -56,7 +55,7 @@ export_path_acor = export_parent / "correlation-acor.png"
 export_path_acor_before = export_parent / "correlation-acor_before.png"
 
 # Load data
-drms = utils.read_liwc_csv(subreddit="dreams", dream_filter=posts)
+drms = utils.read_liwc_csv(subreddit="dreams", dream_filter=flair)
 news = utils.read_liwc_csv(subreddit="news")
 drms["subreddit"] = "Dreams"
 news["subreddit"] = "news"
@@ -165,7 +164,7 @@ ax.set_xlabel(r"COVID-19 news frequency ${\Delta}_{\%}$")
 ax.set_ylabel(r"Next-week anxious dreaming ${\Delta}_{\%}$")
 xlim = 0.35
 ylim = 0.6
-if posts == "wake":
+if flair == "nondreams":
     ylim += 0.2
 # Bizarre situation where there is an outlier week in 2019 that coincidentally has tones of covid words in it.
 if year == 2019:
@@ -206,9 +205,7 @@ if year == 2019:
 cbar.set_label(cbar_label)
 
 # Export plots
-plt.savefig(export_path_plot)
-plt.savefig(export_path_plot.with_suffix(".svg"), dpi=96)
-plt.close()
+utils.save_and_close_fig(export_path_plot, include_svg=True)
 
 #######################################################################################
 ################  Stats and Plotting for Autocorrelation/Stationarity  ################
@@ -274,8 +271,7 @@ for col, subreddit in enumerate(["news", "Dreams"]):
         ax.text(0.85, 0.05, text_pass, ha="left", va="bottom", transform=ax.transAxes)
 
 # Export plots
-plt.savefig(export_path_acor_before)
-plt.close()
+utils.save_and_close_fig(export_path_plot)
 
 #########################################################
 
@@ -332,5 +328,5 @@ ax.text(0.83, 0.05, text, ha="right", va="bottom", transform=ax.transAxes)
 ax.text(0.85, 0.05, text_pass, ha="left", va="bottom", transform=ax.transAxes)
 
 # Export plots
-plt.savefig(export_path_acor)
+utils.save_and_close_fig(export_path_plot)
 plt.close()
