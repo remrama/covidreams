@@ -5,6 +5,7 @@ from pathlib import Path
 
 import matplotlib.pyplot as plt
 import pandas as pd
+import pooch
 
 # Load configuration file so it's accessible from utils
 with open("./config.json", "r", encoding="utf-8") as f:
@@ -15,6 +16,16 @@ for key, value in config.items():
         config[key] = Path(value)
         if not config[key].is_dir():
             config[key].mkdir(parents=True, exist_ok=False)
+
+fetcher = pooch.create(
+    path=config["sourcedata_directory"],
+    base_url=f"doi:{config['zenodo_doi']}/",
+    registry=config["data_registry"],
+)
+
+
+def fetch_sourcedata(filename):
+    return Path(fetcher.fetch(filename))
 
 
 def read_liwc_csv(subreddit, dream_filter=None):

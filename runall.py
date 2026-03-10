@@ -17,6 +17,7 @@ scraping_scripts = [
 ]
 
 liwc_scripts = [
+    ["python", "merge_news.py"],
     ["python", "liwc_run.py"],
     ["python", "merge_liwc.py"],
 ]

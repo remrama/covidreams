@@ -12,6 +12,7 @@ dependencies:
   - conda-forge::colorcet     # data visualization - colormaps
   - conda-forge::svgutils     # data visualization - figure composition
   - conda-forge::cairosvg     # data visualization - figure composition
+  - conda-forge::pooch        # data access
   - pip
   - pip:
     - psaw                    # data collection - Reddit API

@@ -11,6 +11,8 @@ A research project using [r/Dreams](https://www.reddit.com/r/Dreams) to look at 
 
 ## Data collection
 
+Data is available [on Zenodo](https://doi.org/10.5281/zenodo.18940544). This step can be skipped and the subsequent analysis steps will automatically pull the relevant data files from Zenodo.
+
 ```bash
 # Scrape posts from r/Dreams and r/news
 python scrape_reddit.py -r Dreams --start 2019-01-01 --end 2020-12-31
@@ -19,11 +21,22 @@ python scrape_reddit.py -r news --start 2019-01-01 --end 2020-12-31
 
 ## Data analysis
 
+### Run LIWC
+
+This step requires a local copy of LIWC-22 installed.
+
 ```bash
+# Merge the two news files from different years
+python merge_news.py
 # Run LIWC on raw Reddit data
 python liwc_run.py
 # Merge LIWC results files into easily-accessible files for each subreddit
 python merge_liwc.py
+```
+
+### Statistics
+
+```bash
 # Save filtered and sorted file for qualitative inspection
 python example_view.py
 # How much data is there?

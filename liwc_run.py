@@ -7,7 +7,7 @@ import utils
 
 sourcedata_dir = utils.config["sourcedata_directory"]
 derivatives_dir = utils.config["derivatives_directory"]
-dic_filepath = sourcedata_dir / "custom.dic"
+dic_filepath = utils.fetch_sourcedata("custom.dic")
 
 iterations = [
     ("liwc-dreams-anxiety.csv", "dreams", "selftext", "LIWC22", "emo_anx"),
@@ -17,8 +17,10 @@ iterations = [
 
 for keys in iterations:
     export_name, subreddit, column, dictionary, include_categories = keys
-    directory = derivatives_dir if subreddit == "news" else sourcedata_dir
-    import_path = directory / f"r-{subreddit}.csv"
+    if subreddit == "news":
+        import_path = derivatives_dir / f"r-{subreddit}.csv"
+    else:
+        import_path = utils.fetch_sourcedata(f"r-{subreddit}.csv")
     export_path = derivatives_dir / export_name
     if dictionary == "custom.dic":
         dictionary = str(dic_filepath)

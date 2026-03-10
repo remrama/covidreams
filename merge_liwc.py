@@ -78,7 +78,8 @@ def filter_columns(dataframe):
 
 
 # Raw r/news comes from derivatives folder bc it required merging source files
-dreams_raw = read_raw_reddit(sourcedata_dir / "r-dreams.csv")
+dreams_filepath = utils.fetch_sourcedata("r-dreams.csv")
+dreams_raw = read_raw_reddit(dreams_filepath)
 news_raw = read_raw_reddit(derivatives_dir / "r-news.csv")
 
 # LIWC results for r/dreams needs to load and merge two separate LIWC outputs

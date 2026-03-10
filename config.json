@@ -1,5 +1,12 @@
 {
     "sourcedata_directory": "../data/sourcedata",
     "derivatives_directory": "../data/derivatives",
-    "dream_flair": ["Short Dream", "Medium Dream", "Long Dream"]
+    "dream_flair": ["Short Dream", "Medium Dream", "Long Dream"],
+    "zenodo_doi": "10.5281/zenodo.18940545",
+    "data_registry": {
+        "r-dreams.csv": "sha256:173330c56d4bb2b0108c5a190feb6ae5",
+        "r-news.csv": "sha256:a1ff2ac98afc0ffe05bcad3db1e24ed9",
+        "news_since-2019-03-01_until-2019-10-01.jsonl": "md5:38b2109e6a218655732d417626e1c00c",
+        "custom.dic": "md5:c31d3d8d2629b72bd112d9abcc76d9ea"
+    }
 }
