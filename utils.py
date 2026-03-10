@@ -35,7 +35,7 @@ def filter_dreams(dataframe, filter):
 
 def load_matplotlib_settings():
     # plt.rcParams["interactive"] = True
-    plt.rcParams["savefig.dpi"] = 600
+    plt.rcParams["savefig.dpi"] = 300
     plt.rcParams["figure.constrained_layout.use"] = True
     plt.rcParams["font.family"] = "Times New Roman"
     # plt.rcParams["font.sans-serif"] = "Arial"

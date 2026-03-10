@@ -207,7 +207,7 @@ cbar.set_label(cbar_label)
 
 # Export plots
 plt.savefig(export_path_plot)
-plt.savefig(export_path_plot.with_suffix(".pdf"))
+plt.savefig(export_path_plot.with_suffix(".svg"), dpi=96)
 plt.close()
 
 #######################################################################################

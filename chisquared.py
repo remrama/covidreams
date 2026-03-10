@@ -148,5 +148,5 @@ ax.set_xlim(-0.8, 1.5)
 
 # Export plots
 plt.savefig(export_path_plot)
-plt.savefig(export_path_plot.with_suffix(".pdf"))
+plt.savefig(export_path_plot.with_suffix(".svg"), dpi=96)
 plt.close()
