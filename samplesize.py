@@ -23,7 +23,9 @@ import seaborn as sns
 import utils
 
 parser = argparse.ArgumentParser()
-parser.add_argument("--prior", action="store_true", help="Run on 2019 data instead of 2020 data.")
+parser.add_argument(
+    "--prior", action="store_true", help="Run on 2019 data instead of 2020 data."
+)
 args = parser.parse_args()
 
 year = 2019 if args.prior else 2020
@@ -34,26 +36,18 @@ export_dir = Path(utils.config["derivatives_directory"])
 if year == 2019:
     export_dir = export_dir / str(year)
 export_dir.mkdir(exist_ok=True)
-import_path = import_dir / "r-dreams.csv"
 export_path_desc = export_dir / "samplesize-desc.tsv"
 export_path_plot = export_dir / "samplesize-plot.png"
 
-# Creates pandas datetimes for start, end, COVID declaration
-covid_dt = pd.to_datetime(f"{year}-03-11", utc=True)
-start_dt = covid_dt - pd.Timedelta("30D")
-end_dt = covid_dt + pd.Timedelta("30D")
-
 # Load data
-data = pd.read_csv(import_path, encoding="utf-8")
-df = utils.preprocess_subreddit(data)
+df = utils.read_liwc_csv(subreddit="dreams")
 
 # Consolidate flair
-dream_flair = ["Short Dream", "Medium Dream", "Long Dream"]
-nondream_flair = [f for f in df["link_flair_text"].unique() if f not in dream_flair]
+nondream_flair = [
+    flair for flair in df["flair"].unique() if flair not in utils.config["dream_flair"]
+]
 df["Dream flair"] = (
-    df["link_flair_text"]
-    .fillna(value="None")
-    .replace(to_replace=nondream_flair, value="None")
+    df["flair"].fillna(value="None").replace(to_replace=nondream_flair, value="None")
 )
 
 # Average post counts per day
@@ -65,7 +59,7 @@ daily = (
     .sort_index(ascending=True)
 )
 daily["total"] = daily.sum(axis=1)
-daily["dream"] = daily[dream_flair].sum(axis=1)
+daily["dream"] = daily[utils.config["dream_flair"]].sum(axis=1)
 
 # Extract window of interest
 covid_dt = pd.to_datetime(f"{year}-03-11", utc=True)

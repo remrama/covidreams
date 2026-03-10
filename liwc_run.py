@@ -11,9 +11,9 @@ derivatives_dir = Path(utils.config["derivatives_directory"])
 dic_filepath = sourcedata_dir / "custom.dic"
 
 iterations = [
-    ("liwc-dreams-anxiety.csv", "dreams", "selftext", "LIWC22", "WC,emo_anx"),
+    ("liwc-dreams-anxiety.csv", "dreams", "selftext", "LIWC22", "emo_anx"),
     ("liwc-dreams-nightmare.csv", "dreams", "title", "custom.dic", "nightmare"),
-    ("liwc-news-covid.csv", "news", "title", "custom.dic", "WC,covid"),
+    ("liwc-news-covid.csv", "news", "title", "custom.dic", "covid"),
 ]
 
 for keys in iterations:

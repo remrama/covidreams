@@ -28,16 +28,22 @@ import statsmodels.api as sm
 import utils
 
 parser = argparse.ArgumentParser()
-parser.add_argument("--prior", action="store_true", help="Run on 2019 data instead of 2020 data.")
-parser.add_argument("--wake", action="store_true", help="Run on wake text instead of dream text.")
-parser.add_argument("--long", action="store_true", help="Run with 60-day window instead of 30.")
+parser.add_argument(
+    "--prior", action="store_true", help="Run on 2019 data instead of 2020 data."
+)
+parser.add_argument(
+    "--wake", action="store_true", help="Run on wake text instead of dream text."
+)
+parser.add_argument(
+    "--long", action="store_true", help="Run with 60-day window instead of 30."
+)
 args = parser.parse_args()
 
 year = 2019 if args.prior else 2020
 posts = "wake" if args.wake else "dreams"
 days = 60 if args.long else 30
 
-text_column = "emo_anx"
+text_column = "anxiety"
 ylabel = "Anxious dreaming"
 
 # Declare filepaths for importing and exporting
@@ -62,9 +68,7 @@ start_dt = covid_dt - pd.Timedelta("30D")
 end_dt = covid_dt + pd.Timedelta(f"{days:d}D")
 
 # Load data
-data = utils.load_liwc_results(subreddit="dreams")
-drms = utils.filter_flair(data, posts=posts)
-df = utils.preprocess_subreddit(drms)
+df = utils.read_liwc_csv(subreddit="dreams", dream_filter=posts)
 
 # Average per day
 daily = (
@@ -160,10 +164,9 @@ model_vals = obs.join(pred).join(dat).join(datsmooth)
 
 # Export stats
 model.save(export_path_modl)
-model_vals.to_csv(export_path_vals, na_rep="NA", sep="\t")
+model_vals.to_csv(export_path_vals, na_rep="N/A", sep="\t")
 with open(export_path_stat, "w", encoding="utf-8") as f:
     f.write(summary.as_text())
-
 
 ############################################
 ################  Plotting  ################
@@ -264,7 +267,6 @@ plt.savefig(export_path_plot)
 plt.savefig(export_path_plot.with_suffix(".pdf"))
 plt.close()
 
-
 #######################################################################################
 ################  Stats and Plotting for Autocorrelation/Stationarity  ################
 #######################################################################################
@@ -302,7 +304,9 @@ text_pass = "\n".join(
     ]
 )
 # Open up figure
-fig, ax = plt.subplots(figsize=(3, 3), constrained_layout=True, sharex=True, sharey=True)
+fig, ax = plt.subplots(
+    figsize=(3, 3), constrained_layout=True, sharex=True, sharey=True
+)
 # Draw an ACF plot/correlogram to visually inspect autocorrelation
 sm.graphics.tsa.plot_acf(model.resid, ax, **acf_kwargs)
 # Draw text

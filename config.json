@@ -1,4 +1,5 @@
 {
     "sourcedata_directory": "../data/sourcedata",
-    "derivatives_directory": "../data/derivatives"
+    "derivatives_directory": "../data/derivatives",
+    "dream_flair": ["Short Dream", "Medium Dream", "Long Dream"]
 }

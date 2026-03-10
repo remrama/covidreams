@@ -11,10 +11,10 @@ A research project using [r/Dreams](https://www.reddit.com/r/Dreams) to look at 
 ## Data collection
 
 ```bash
-# Generate data directory structure.
+# Generate data directory structure
 python setup_directories.py
 
-# Scrape posts from r/Dreams and r/news.
+# Scrape posts from r/Dreams and r/news
 python scrape_reddit.py -r Dreams --start 2019-01-01 --end 2020-12-31
 python scrape_reddit.py -r news --start 2019-01-01 --end 2020-12-31
 ```
@@ -24,6 +24,8 @@ python scrape_reddit.py -r news --start 2019-01-01 --end 2020-12-31
 ```bash
 # Run LIWC on raw Reddit data
 python liwc_run.py
+# Merge LIWC results files into easily-accessible files for each subreddit
+python merge_liwc.py
 # Save filtered and sorted file for qualitative inspection
 python example_view.py
 # How much data is there?

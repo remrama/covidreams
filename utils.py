@@ -11,52 +11,25 @@ with open("./config.json", "r", encoding="utf-8") as f:
     config = json.load(f)
 
 
-def load_liwc_results(subreddit):
+def read_liwc_csv(subreddit, dream_filter=None):
     assert subreddit in {"dreams", "news"}
-    if subreddit == "news":
-        liwc_filepath = Path(config["derivatives_directory"]) / f"liwc-news-covid.csv"
-        liwc = pd.read_csv(liwc_filepath, index_col="Row ID").drop(columns=["Segment"]).rename_axis("id")
-    elif subreddit == "dreams":
-        # Load LIWC emo_anx on selftext and nightmare on title
-        liwc1_filepath = Path(config["derivatives_directory"]) / f"liwc-dreams-anxiety.csv"
-        liwc2_filepath = Path(config["derivatives_directory"]) / f"liwc-dreams-nightmare.csv"
-        liwc1 = pd.read_csv(liwc1_filepath, index_col="Row ID").drop(columns=["Segment"]).rename_axis("id")
-        liwc2 = pd.read_csv(liwc2_filepath, index_col="Row ID").drop(columns=["Segment"]).rename_axis("id")
-        liwc = liwc1.join(liwc2, how="inner", validate="1:1")
-    raw_dir = config["derivatives_directory"] if subreddit == "news" else config["sourcedata_directory"]
-    raw_filepath = Path(raw_dir) / f"r-{subreddit}.csv"
-    raw = pd.read_csv(raw_filepath, index_col="id", encoding="utf-8")
-    df = raw.join(liwc, how="inner", validate="1:1")
-    return df
-    
-
-def preprocess_subreddit(df, column="selftext"):
-    assert column in {"selftext", "title"}
-    # Create proper timestamp column.
-    df = df.copy()
-    df["timestamp"] = pd.to_datetime(df["created_utc"], unit="s", utc=True)
-    # Remove deleted posts, removed posts, and posts without any text.
-    df = df[~df[column].isin(["[deleted]", "[removed]"])]
-    df = df.dropna(subset=[column])
-    # Remove duplicated posts.
-    df = df.drop_duplicates(subset=[column], keep="first")
-    # Ensure words.
-    if "WC" in df:
-        df = df.query("WC >= 1")
-    else:
-        df = df[df[column].str.len().ge(1)]
+    if dream_filter is not None:
+        assert subreddit == "dreams"
+    read_csv_kwargs = dict(index_col="id", encoding="utf-8", parse_dates=["timestamp"])
+    import_path = Path(config["derivatives_directory"]) / f"r-{subreddit}-liwc.csv"
+    df = pd.read_csv(import_path, **read_csv_kwargs)
+    if dream_filter is not None:
+        df = filter_dreams(df, dream_filter)
     return df
 
 
-def filter_flair(df, posts="dreams"):
-    assert posts in ["dreams", "wake"]
-    df = df.copy()
-    # Reduce to dreams only (unless running control).
-    dream_flair = ["Short Dream", "Medium Dream", "Long Dream"]
-    post_idx = df["link_flair_text"].isin(dream_flair)
-    if posts == "wake":
-        post_idx = ~post_idx
-    df = df.loc[post_idx, :]  # TODO: check indexing
+def filter_dreams(dataframe, filter):
+    assert filter in {"dreams", "wake"}
+    dream_filter = dataframe["flair"].isin(config["dream_flair"])
+    if filter == "dreams":
+        df = dataframe[dream_filter]
+    elif filter == "wake":
+        df = dataframe[~dream_filter]
     return df
 
 

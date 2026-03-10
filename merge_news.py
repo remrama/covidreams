@@ -23,6 +23,8 @@ news2019 = news2019.query("subreddit == 'news'").reset_index(drop=True)
 
 overlapping_columns = news2019.columns.intersection(news2020.columns)
 
-news = pd.concat([news2019[overlapping_columns], news2020[overlapping_columns]], ignore_index=True)
+news = pd.concat(
+    [news2019[overlapping_columns], news2020[overlapping_columns]], ignore_index=True
+)
 
 news.to_csv(export_path, mode="x", index=False, encoding="utf-8")
