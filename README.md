@@ -7,6 +7,7 @@ A research project using [r/Dreams](https://www.reddit.com/r/Dreams) to look at 
 - `environment.yaml` can be used to construct the Python environment
 - `config.json` has general parameter options that apply to multiple scripts
 - `utils.py` has general functions that are useful to multiple scripts
+- `runall.py` can be used to run all scripts in order
 
 ## Data collection
 
