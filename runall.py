@@ -6,7 +6,7 @@ import sys
 
 
 def run(cmd):
-    print(f"\n>>> {' '.join(cmd)}")
+    print(f"Running {' '.join(cmd)} …")
     result = subprocess.run([sys.executable] + cmd[1:], check=True)
     return result
 
@@ -42,6 +42,9 @@ analysis_scripts = [
 
     # Longer post-COVID window
     ["python", "regression.py", "--longerwindow"],
+
+    # Compile multi-panel figure
+    ["python", "figure.py"]
 ]
 
 if __name__ == "__main__":

@@ -2,6 +2,8 @@
 Compile plots into a multi-panel figure
 """
 
+from pathlib import Path
+
 import cairosvg
 import svgutils.compose as sc
 
@@ -14,7 +16,7 @@ regr_path = derivatives_dir / "regression-plot.svg"
 chi2_path = derivatives_dir / "chisquared-plot.svg"
 corr_path = derivatives_dir / "correlation-plot.svg"
 sample_path = derivatives_dir / "samplesize-plot.svg"
-methods_path = derivatives_dir / "methods.svg"
+methods_path = Path("../docs") / "methods.svg"
 
 PPI = 72  # SVG units (pt) per inch
 

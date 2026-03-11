@@ -27,7 +27,7 @@ parser.add_argument(
 )
 args = parser.parse_args()
 
-year = 2019 if args.prior else 2020
+year = 2019 if args.prioryear else 2020
 
 # Declare filepaths for importing/exporting
 import_dir = utils.config["sourcedata_directory"]
