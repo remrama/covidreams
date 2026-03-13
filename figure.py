@@ -13,7 +13,7 @@ import utils
 # Declare filepaths for importing/exporting
 derivatives_dir = utils.config["derivatives_directory"]
 results_dir = utils.config["results_directory"]
-export_path = results_directory / "figure.pdf"
+export_path = results_dir / "figure.pdf"
 methods_path = Path("../docs") / "methods.svg"
 regr_path = derivatives_dir / "regression-plot.svg"
 chi2_path = derivatives_dir / "chisquared-plot.svg"
@@ -72,6 +72,6 @@ fig = sc.Figure(
     ).move(regr_x + chi2_x + TEXT_HPAD * 3 + HPAD * 2, vpad_ppi),
 )
 
-with tempfile.NamedTemporaryFile(suffix=".svg", delete=True) as tmp:
+with tempfile.NamedTemporaryFile(suffix=".svg", delete=True, delete_on_close=False) as tmp:
     fig.save(tmp.name)
     cairosvg.svg2pdf(url=tmp.name, write_to=str(export_path))

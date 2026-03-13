@@ -46,8 +46,6 @@ if year == 2019:
 if flair == "nondreams":
     export_parent = export_parent / "nondreams"
 export_parent.mkdir(exist_ok=True)
-export_path_acor = export_parent / "correlation-acor.png"
-export_path_acor_before = export_parent / "correlation-acor_before.png"
 
 # Choose desired windows
 # Have to start post-covid announcement bc otherwise there are crazy outlier jumps
@@ -235,6 +233,8 @@ def plot_correlation(stat, data):
 # both subreddits (news and Dreams) and both stages of processing (raw and percent change).
 
 def autocorrelation_pre():
+    export_path_acor_before = export_parent / "correlation-acor_before.png"
+
     # Open up figure
     fig, axes = plt.subplots(
         2, 2, figsize=(6, 6), constrained_layout=True, sharex=True, sharey=True
@@ -298,6 +298,7 @@ def autocorrelation_pre():
 #########################################################
 
 def autocorrelation(data):
+    export_path_stats = export_parent / "correlation-acor.tsv"
     # Run regression
     # Run correlation (rows with NaNs are automatically removed)
     weekly_nonan = data.dropna(how="any", axis="rows")
@@ -306,7 +307,6 @@ def autocorrelation(data):
     )
     result = model.fit()
     
-    export_path_stats = export_parent / "regression-acor.tsv"
     export_path_plot = export_path_stats.with_suffix(".png")
 
     N_LAGS_LB = 10
