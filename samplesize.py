@@ -35,116 +35,138 @@ export_dir = utils.config["derivatives_directory"]
 if year == 2019:
     export_dir = export_dir / "prioryear"
 export_dir.mkdir(exist_ok=True)
-export_path_desc = export_dir / "samplesize-desc.tsv"
-export_path_plot = export_dir / "samplesize-plot.png"
-
-# Load data
-df = utils.read_liwc_csv(subreddit="dreams")
-
-# Consolidate flair
-nondream_flair = [
-    flair for flair in df["flair"].unique() if flair not in utils.config["dream_flair"]
-]
-df["Dream flair"] = (
-    df["flair"].fillna(value="None").replace(to_replace=nondream_flair, value="None")
-)
-
-# Average post counts per day
-daily = (
-    df.groupby([pd.Grouper(key="timestamp", freq="D"), "Dream flair"])
-    .size()
-    .unstack()
-    .fillna(0)
-    .sort_index(ascending=True)
-)
-daily["total"] = daily.sum(axis=1)
-daily["dream"] = daily[utils.config["dream_flair"]].sum(axis=1)
 
 # Extract window of interest
-covid_dt = pd.to_datetime(f"{year}-03-11", utc=True)
-start_dt = covid_dt - pd.Timedelta("30D")
-end_dt = covid_dt + pd.Timedelta("30D")
-daily = daily.loc[start_dt:end_dt, :]
-daily["Window"] = (
-    pd.Series(daily.index).between(covid_dt, end_dt, inclusive="both").to_numpy()
-)
-daily["Window"] = daily["Window"].replace({False: "Pre", True: "Post"})
+PRE_WINDOW_DURATION = "29D"
+POST_WINDOW_DURATION = "30D"
+event_date = f"{year}-03-11"
+event_dt = pd.to_datetime(event_date, utc=True)
+start_dt = event_dt - pd.Timedelta(PRE_WINDOW_DURATION)
+end_dt = event_dt + pd.Timedelta(POST_WINDOW_DURATION)
+start_date = start_dt.date().isoformat()
+end_date = end_dt.date().isoformat()
 
-# Create a dataframe with mean, std, etc. for the number of posts per day
-desc = (
-    daily.groupby("Window")
-    .agg(["count", "min", "max", "mean", "sum"])
-    .stack("Dream flair", future_stack=True)
-    .sort_index(ascending=False)
-    .round(2)
-)
 
-# Export descriptives
-desc.to_csv(export_path_desc, sep="\t")
+def get_table(dataframe):
+    export_path = export_dir / "samplesize-desc.tsv"
+
+    df = dataframe.loc[start_date:end_date]
+
+    # Average post counts per day
+    daily = (
+        df.reset_index(drop=False)
+        .groupby([pd.Grouper(key="timestamp", freq="D"), "flair"])
+        .size()
+        .unstack()
+        .fillna(0)
+        .sort_index(ascending=True)
+        .astype(int)
+    )
+    # daily["total"] = daily.sum(axis=1)
+    # daily["dream"] = daily[utils.config["dream_flair"]].sum(axis=1)
+
+    # daily = daily.loc[start_date:end_date]
+    daily.loc[:, "PostCovid"] = True
+    daily.loc[start_date:event_date, "PostCovid"] = False
+
+    # Create a dataframe with mean, std, etc. for the number of posts per day
+    desc = (
+        daily.groupby("PostCovid")
+        .agg(["count", "min", "max", "mean", "sum"])
+        .stack("flair", future_stack=True)
+        .sort_index(ascending=False)
+        .round(2)
+        .rename(
+            columns={
+                "count": "n_days",
+                "sum": "n_posts",
+            }
+        )
+    )
+    print(desc.drop("None", level=1)["n_posts"].sum())
+
+    desc.to_csv(export_path, sep="\t", encoding="utf-8", float_format="{:.1f}")
+    return
+
 
 ############################################
 ################  Plotting  ################
 ############################################
 
-# Set global matplotlib settings
-utils.load_matplotlib_settings()
+def plot_samplesize(dataframe):
+    export_path = export_dir / "samplesize-plot.png"
+    # Set global matplotlib settings
+    utils.load_matplotlib_settings()
 
-# Select colors
-colormap = cc.cm.blues
-palette = {
-    "None": "white",
-    "Short Dream": colormap(1 / 3),
-    "Medium Dream": colormap(2 / 3),
-    "Long Dream": colormap(3 / 3),
-}
+    dataframe = dataframe.rename(columns={"flair": "Dream flair"})
 
-# Open figure
-fig, ax = plt.subplots(figsize=(3.8, 1.5))
+    # Select colors
+    colormap = cc.cm.blues
+    palette = {
+        "None": "white",
+        "Short Dream": colormap(1 / 3),
+        "Medium Dream": colormap(2 / 3),
+        "Long Dream": colormap(3 / 3),
+    }
 
-# Identify histogram bins
-lower_xbound = mdates.date2num(start_dt)
-upper_xbound = mdates.date2num(end_dt + pd.Timedelta("1D"))
-bins = np.arange(lower_xbound, upper_xbound)
+    # Open figure
+    fig, ax = plt.subplots(figsize=(3.8, 1.5))
 
-# Draw data
-ax = sns.histplot(
-    df,
-    x="timestamp",
-    hue="Dream flair",
-    multiple="stack",
-    palette=palette,
-    hue_order=list(palette),
-    bins=bins,
-    edgecolor="black",
-    linewidth=0.5,
-    ax=ax,
-    clip_on=False,
-)
+    # Identify histogram bins
+    lower_xbound = mdates.date2num(start_dt)
+    upper_xbound = mdates.date2num(end_dt + pd.Timedelta("1D"))
+    bins = np.arange(lower_xbound, upper_xbound)
 
-# Adjust aesthetics
-ax.margins(x=0)
-ax.set_ybound(upper=190)
-ax.set_xlabel(None)
-ax.set_ylabel("Daily post count")
-ax.tick_params(axis="x", which="both", direction="out", top=False)
-ax.spines[["left", "right"]].set_position(("outward", 7))
-date_major_locator = mdates.MonthLocator(bymonth=None, bymonthday=1, interval=1)
-date_minor_locator = mdates.DayLocator(bymonthday=None, interval=1)
-date_major_formatter = mdates.DateFormatter(rf"%B $1^\mathrm{{st}}$, {year}")
-ax.xaxis.set_major_locator(date_major_locator)
-ax.xaxis.set_minor_locator(date_minor_locator)
-ax.xaxis.set_major_formatter(date_major_formatter)
-ax.yaxis.set_major_locator(plt.MultipleLocator(50))
-ax.yaxis.set_minor_locator(plt.MultipleLocator(10))
-sns.move_legend(
-    ax,
-    "upper center",
-    ncol=4,
-    borderaxespad=0,
-    columnspacing=1,
-    handlelength=1,
-    handleheight=1,
-)
+    # Draw data
+    ax = sns.histplot(
+        dataframe.reset_index(drop=False),
+        x="timestamp",
+        hue="Dream flair",
+        multiple="stack",
+        palette=palette,
+        hue_order=list(palette),
+        bins=bins,
+        edgecolor="black",
+        linewidth=0.5,
+        ax=ax,
+        clip_on=False,
+    )
 
-# Export
-utils.save_and_close_fig(export_path_plot, include_svg=True)
+    # Adjust aesthetics
+    ax.margins(x=0)
+    ax.set_ybound(upper=190)
+    ax.set_xlabel(None)
+    ax.set_ylabel("Daily post count")
+    ax.tick_params(axis="x", which="both", direction="out", top=False)
+    ax.spines[["left", "right"]].set_position(("outward", 7))
+    date_major_locator = mdates.MonthLocator(bymonth=None, bymonthday=1, interval=1)
+    date_minor_locator = mdates.DayLocator(bymonthday=None, interval=1)
+    date_major_formatter = mdates.DateFormatter(rf"%B $1^\mathrm{{st}}$, {year}")
+    ax.xaxis.set_major_locator(date_major_locator)
+    ax.xaxis.set_minor_locator(date_minor_locator)
+    ax.xaxis.set_major_formatter(date_major_formatter)
+    ax.yaxis.set_major_locator(plt.MultipleLocator(50))
+    ax.yaxis.set_minor_locator(plt.MultipleLocator(10))
+    sns.move_legend(
+        ax,
+        "upper center",
+        ncol=4,
+        borderaxespad=0,
+        columnspacing=1,
+        handlelength=1,
+        handleheight=1,
+    )
+
+    # Export
+    utils.save_and_close_fig(export_path, include_svg=True)
+
+
+if __name__ == "__main__":
+    # Load data
+    df = utils.read_liwc_csv(subreddit="dreams")
+
+    # Consolidate flair
+    df["flair"] = df["flair"].map(lambda x: x if x in utils.config["dream_flair"] else "None")
+
+    get_table(df)
+    plot_samplesize(df)

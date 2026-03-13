@@ -2,6 +2,7 @@
 Compile plots into a multi-panel figure
 """
 
+import tempfile
 from pathlib import Path
 
 import cairosvg
@@ -11,12 +12,13 @@ import utils
 
 # Declare filepaths for importing/exporting
 derivatives_dir = utils.config["derivatives_directory"]
-export_path = derivatives_dir / "figure.svg"
+results_dir = utils.config["results_directory"]
+export_path = results_directory / "figure.pdf"
+methods_path = Path("../docs") / "methods.svg"
 regr_path = derivatives_dir / "regression-plot.svg"
 chi2_path = derivatives_dir / "chisquared-plot.svg"
 corr_path = derivatives_dir / "correlation-plot.svg"
 sample_path = derivatives_dir / "samplesize-plot.svg"
-methods_path = Path("../docs") / "methods.svg"
 
 PPI = 72  # SVG units (pt) per inch
 
@@ -43,7 +45,7 @@ vpad_ppi = VPAD * PPI
 fig_width = f"{7.25 * PPI}"
 fig_height = f"{3.6 * PPI}"
 
-sc.Figure(
+fig = sc.Figure(
     fig_width,
     fig_height,
     # Top row
@@ -68,7 +70,8 @@ sc.Figure(
         sc.SVG(corr_path),
         sc.Text("E.", *TEXT_ARGS, **TEXT_KWARGS),
     ).move(regr_x + chi2_x + TEXT_HPAD * 3 + HPAD * 2, vpad_ppi),
-).save(export_path)
+)
 
-cairosvg.svg2pdf(url=str(export_path), write_to=str(export_path.with_suffix(".pdf")))
-export_path.unlink()
+with tempfile.NamedTemporaryFile(suffix=".svg", delete=True) as tmp:
+    fig.save(tmp.name)
+    cairosvg.svg2pdf(url=tmp.name, write_to=str(export_path))

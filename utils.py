@@ -32,9 +32,13 @@ def read_liwc_csv(subreddit, dream_filter=None):
     assert subreddit in {"dreams", "news"}
     if dream_filter is not None:
         assert subreddit == "dreams"
-    read_csv_kwargs = dict(index_col="id", encoding="utf-8", parse_dates=["timestamp"])
+    read_csv_kwargs = dict(encoding="utf-8", parse_dates=["timestamp"])
     import_path = config["derivatives_directory"] / f"r-{subreddit}-liwc.csv"
-    df = pd.read_csv(import_path, **read_csv_kwargs)
+    df = (
+        pd.read_csv(import_path, **read_csv_kwargs)
+        .set_index("timestamp")
+        .sort_index()
+    )
     if dream_filter is not None:
         df = filter_dreams(df, dream_filter)
     return df
