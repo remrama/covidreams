@@ -58,9 +58,9 @@ export_parent.mkdir(exist_ok=True)
 PRE_WINDOW_DURATION = "29D" # 30 days including event date
 post_window_duration = f"{days:d}D"
 event_date = f"{year}-03-11"
-covid_dt = pd.to_datetime(event_date, utc=True)
-start_dt = covid_dt - pd.Timedelta(PRE_WINDOW_DURATION)
-end_dt = covid_dt + pd.Timedelta(post_window_duration)
+event_dt = pd.to_datetime(event_date, utc=True)
+start_dt = event_dt - pd.Timedelta(PRE_WINDOW_DURATION)
+end_dt = event_dt + pd.Timedelta(post_window_duration)
 start_date = start_dt.date().isoformat()
 end_date = end_dt.date().isoformat()
 
@@ -152,7 +152,7 @@ def plot_regression(result):
 
     # Convert datetimes to x-axis values
     start_x = mdates.date2num(start_dt)
-    covid_x = mdates.date2num(covid_dt)
+    event_x = mdates.date2num(event_dt)
     end_x = mdates.date2num(end_dt)
 
     # Get observed (observed fit) data
@@ -219,7 +219,7 @@ def plot_regression(result):
     who_text = rf"March $11^\mathrm{{th}}$, {result.year}"
     if result.year == 2020:
         who_text += "\nCOVID-19 declared\na global pandemic"
-    xy = (mdates.date2num(covid_dt), ymin)
+    xy = (event_x, ymin)
     xytext = (0.45, 0.9)
     xy_coords = "data"
     xytext_coords = "axes fraction"

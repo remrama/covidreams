@@ -15,21 +15,22 @@ sourcedata_dir = utils.config["sourcedata_directory"]
 import_path_raw = sourcedata_dir / "r-dreams.csv"
 export_path = derivatives_dir / "example_view.csv"
 
-# Load data
-df = utils.read_liwc_csv(subreddit="dreams", dream_filter="dreams")
+PRE_WINDOW_DURATION = "29D" # 30 days including event date
+POST_WINDOW_DURATION = "30D"
+EVENT_DATE = "2020-03-11"
+event_dt = pd.to_datetime(EVENT_DATE, utc=True)
+start_dt = event_dt - pd.Timedelta(PRE_WINDOW_DURATION)
+end_dt = event_dt + pd.Timedelta(POST_WINDOW_DURATION)
+start_date = start_dt.date().isoformat()
+end_date = end_dt.date().isoformat()
 
-# Extract the relevant time window
-covid_dt = pd.to_datetime("2020-03-11", utc=True)
-start_dt = covid_dt - pd.Timedelta("30D")
-end_dt = covid_dt + pd.Timedelta("30D")
-df = df[df["timestamp"].between(start_dt, end_dt, inclusive="both")]
-df = df.drop(columns="timestamp")
-
-# Sort from high-to-low anxiety (can sort nightmare in external software)
-df = df.sort_values("anxiety", ascending=False)
-
-# Reorder columns for easier viewing of long text in external software
-df = df.reindex(columns=["anxiety", "nightmare", "title", "post"])
-
-# Export
-df.to_csv(export_path, index=False, encoding="utf-8")
+(
+    # Load data
+    utils.read_liwc_csv(subreddit="dreams", dream_filter="dreams")
+    # Extract the relevant time window
+    .loc[start_date:end_date]
+    # Sort from high-to-low anxiety (can sort nightmare in external software)
+    .sort_values("anxiety", ascending=False)
+    # Reorder columns for easier viewing of long text in external software
+    .reindex(columns=["anxiety", "nightmare", "title", "post"])
+).to_csv(export_path, index=False, encoding="utf-8")

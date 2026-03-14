@@ -83,7 +83,6 @@ def get_table(dataframe):
             }
         )
     )
-    print(desc.drop("None", level=1)["n_posts"].sum())
 
     desc.to_csv(export_path, sep="\t", encoding="utf-8", float_format="{:.1f}")
     return

@@ -6,45 +6,46 @@ import sys
 
 
 def run(cmd):
-    print(f"Running {' '.join(cmd)} …")
-    result = subprocess.run([sys.executable] + cmd[1:], check=True)
+    print(f"Running {cmd} …")
+    result = subprocess.run([sys.executable] + cmd.split(), check=True)
     return result
 
 
 scraping_scripts = [
-    ["python", "scrape_reddit.py", "-r", "Dreams", "--start", "2019-01-01", "--end", "2020-12-31"],
-    ["python", "scrape_reddit.py", "-r", "news", "--start", "2019-01-01", "--end", "2020-12-31"],
+    "scrape_reddit.py -r Dreams --start 2019-01-01 --end 2020-12-31",
+    "scrape_reddit.py -r Dreams --start 2019-01-01 --end 2020-12-31",
+    "scrape_reddit.py -r news --start 2019-01-01 --end 2020-12-31",
 ]
 
 liwc_scripts = [
-    ["python", "merge_news.py"],
-    ["python", "liwc_run.py"],
-    ["python", "merge_liwc.py"],
+    "merge_news.py",
+    "liwc_run.py",
+    "merge_liwc.py",
 ]
 
 analysis_scripts = [
-    ["python", "example_view.py"],
-    ["python", "samplesize.py"],
-    ["python", "regression.py"],
-    ["python", "chisquared.py"],
-    ["python", "correlation.py"],
+    "example_view.py",
+    "samplesize.py",
+    "regression.py",
+    "chisquared.py",
+    "correlation.py",
 
     # Prior year controls (seasonality)
-    ["python", "samplesize.py", "--prioryear"],
-    ["python", "regression.py", "--prioryear"],
-    ["python", "chisquared.py", "--prioryear"],
-    ["python", "correlation.py", "--prioryear"],
+    "samplesize.py --prioryear",
+    "regression.py --prioryear",
+    "chisquared.py --prioryear",
+    "correlation.py --prioryear",
 
     # Non-flaired post controls (daily language)
-    ["python", "regression.py", "--nondreams"],
-    ["python", "chisquared.py", "--nondreams"],
-    ["python", "correlation.py", "--nondreams"],
+    "regression.py --nondreams",
+    "chisquared.py --nondreams",
+    "correlation.py --nondreams",
 
     # Longer post-COVID window
-    ["python", "regression.py", "--longerwindow"],
+    "regression.py --longerwindow",
 
     # Compile multi-panel figure
-    ["python", "figure.py"]
+    "figure.py",
 ]
 
 if __name__ == "__main__":
