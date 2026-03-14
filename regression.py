@@ -58,7 +58,7 @@ export_parent.mkdir(exist_ok=True)
 PRE_WINDOW_DURATION = "29D" # 30 days including event date
 post_window_duration = f"{days:d}D"
 event_date = f"{year}-03-11"
-event_dt = pd.to_datetime(event_date, utc=True)
+event_dt = pd.to_datetime(event_date, utc=False)
 start_dt = event_dt - pd.Timedelta(PRE_WINDOW_DURATION)
 end_dt = event_dt + pd.Timedelta(post_window_duration)
 start_date = start_dt.date().isoformat()
@@ -132,8 +132,8 @@ def run_regression(flair):
     result.year = year
     result.save(export_path)
     # model_vals.to_csv(export_path_vals, na_rep="N/A", sep="\t")
-    # with open(export_path_stat, "w", encoding="utf-8") as f:
-    #     f.write(summary.as_text())
+    with open(export_path.with_suffix(".txt"), "w", encoding="utf-8") as f:
+        f.write(result.summary().as_text())
     return result
 
 ############################################

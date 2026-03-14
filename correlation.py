@@ -52,8 +52,8 @@ export_parent.mkdir(exist_ok=True)
 # where the amount of COVID news covid news goes from like .0001 to a lot.
 start_date = f"{year}-03-12"
 end_date = f"{year}-09-01"
-start_dt = pd.to_datetime(start_date, utc=True)
-end_dt = pd.to_datetime(end_date, utc=True)
+start_dt = pd.to_datetime(start_date, utc=False)
+end_dt = pd.to_datetime(end_date, utc=False)
 
 
 def run_correlation(flair):
@@ -88,7 +88,7 @@ def run_correlation(flair):
         .droplevel(axis=1, level=0)
     )
 
-    # Shift dreams forward to account for retrospective dream reporting
+    # Shift weekly dreams forward to look at how news predicts dreams the following week
     weekly["nextDreams"] = weekly["Dreams"].shift(1)
 
     # Get percent change because time-series
@@ -111,7 +111,6 @@ def run_correlation(flair):
     stat["n_rnews"] = n_news
 
     stat["r"] = stat["r"].round(4)
-    ci_idx = stat.columns.tolist().index("CI95")
     ci = stat.pop("CI95")
     stat.insert(2, "r_upper", ci.str[1])
     stat.insert(2, "r_lower", ci.str[0])
@@ -180,19 +179,16 @@ def plot_correlation(stat, data):
     # Adjust aesthetics
     ax.set_xlabel(r"COVID-19 news frequency ${\Delta}_{\%}$")
     ax.set_ylabel(r"Next-week anxious dreaming ${\Delta}_{\%}$")
-    xlim = 0.35
-    ylim = 0.6
-    if flair == "nondreams":
-        ylim += 0.2
+    xmin, xmax = -0.35, 0.4
     # Bizarre situation where there is an outlier week in 2019 that coincidentally has tones of covid words in it.
     if year == 2019:
         xmin, xmax = -0.75, 1.9
-        assert not data["news_pctchange"].le(xmin).any()
-        assert not data["news_pctchange"].ge(xmax).any()
-        ax.set_xlim(xmin, xmax)
-    else:
-        assert not data["news_pctchange"].abs().ge(xlim).any()
-        ax.set_xlim(-xlim, xlim)
+    ylim = 0.6
+    if flair == "nondreams" or year == 2019:
+        ylim += 0.2
+    assert not data["news_pctchange"].le(xmin).any()
+    assert not data["news_pctchange"].ge(xmax).any()
+    ax.set_xlim(xmin, xmax)
     assert not data["nextDreams_pctchange"].abs().ge(ylim).any()
     ax.set_ylim(-ylim, ylim)
     if year == 2019:
@@ -205,7 +201,7 @@ def plot_correlation(stat, data):
     ax.yaxis.set_minor_locator(plt.MultipleLocator(0.1))
 
     # Draw colorbar
-    cax = fig.add_axes([0.67, 0.25, 0.2, 0.03])
+    cax = fig.add_axes([0.65, 0.25, 0.2, 0.03])
     smap = plt.cm.ScalarMappable(cmap=colormap, norm=colornorm)
     cbar_ticks = [colornorm.vmin, colornorm.vmax]
     cbar_ticklabels = [str(int(x)) for x in cbar_ticks]
@@ -216,7 +212,7 @@ def plot_correlation(stat, data):
     cax.text(
         -0.05, 0.5, cbar_ticklabels[0], ha="right", va="center", transform=cax.transAxes
     )
-    cax.text(1.1, 0.5, cbar_ticklabels[1], ha="left", va="center", transform=cax.transAxes)
+    cax.text(1.05, 0.5, cbar_ticklabels[1], ha="left", va="center", transform=cax.transAxes)
     cbar_label = "Weeks after\ndeclaration"
     if year == 2019:
         cbar_label = cbar_label.replace("declaration", "March 11, 2019")
@@ -232,68 +228,68 @@ def plot_correlation(stat, data):
 # Test 4 time-series for autocorrelation and stationarity,
 # both subreddits (news and Dreams) and both stages of processing (raw and percent change).
 
-def autocorrelation_pre():
-    export_path_acor_before = export_parent / "correlation-acor_before.png"
+# def autocorrelation_pre():
+#     export_path_acor_before = export_parent / "correlation-acor_before.png"
 
-    # Open up figure
-    fig, axes = plt.subplots(
-        2, 2, figsize=(6, 6), constrained_layout=True, sharex=True, sharey=True
-    )
-    # Select universal plotting keyword arguments
-    acf_kwargs = dict(
-        alpha=0.05,
-        zero=True,
-        missing="drop",
-        title=None,
-        bartlett_confint=False,
-        clip_on=False,
-    )
+#     # Open up figure
+#     fig, axes = plt.subplots(
+#         2, 2, figsize=(6, 6), constrained_layout=True, sharex=True, sharey=True
+#     )
+#     # Select universal plotting keyword arguments
+#     acf_kwargs = dict(
+#         alpha=0.05,
+#         zero=True,
+#         missing="drop",
+#         title=None,
+#         bartlett_confint=False,
+#         clip_on=False,
+#     )
 
-    for col, subreddit in enumerate(["news", "Dreams"]):
-        for row, stage in enumerate(["raw", "pctchange"]):
-            ax = axes[row, col]
-            column = f"{subreddit}_{stage}" if stage == "pctchange" else subreddit
-            data = weekly[column].dropna().to_numpy()
-            title = f"COVID-19 on r/{subreddit}, {stage}"
-            if stage == "pctchange":
-                title = title.replace(stage, r"${\Delta}_{\%}$")
+#     for col, subreddit in enumerate(["news", "Dreams"]):
+#         for row, stage in enumerate(["raw", "pctchange"]):
+#             ax = axes[row, col]
+#             column = f"{subreddit}_{stage}" if stage == "pctchange" else subreddit
+#             data = weekly[column].dropna().to_numpy()
+#             title = f"COVID-19 on r/{subreddit}, {stage}"
+#             if stage == "pctchange":
+#                 title = title.replace(stage, r"${\Delta}_{\%}$")
 
-            # Ljung-Box Q-test for autocorrelation
-            nlags_lb = 10
-            lb = sm.stats.acorr_ljungbox(data, lags=nlags_lb)
-            lb_stat = lb.at[nlags_lb, "lb_stat"]
-            lb_p = lb.at[nlags_lb, "lb_pvalue"]
-            # Compile all stats into text to write on the plots
-            strings = [
-                f"Ljung-Box (lag={nlags_lb}) = {lb_stat:.1f}, p = {lb_p:.3f}",
-            ]
-            strings = [
-                s.replace("p = 0.", "p = .").replace("p = .000", "p < .001")
-                for s in strings
-            ]
-            text = "\n".join(strings)
-            text_pass = "\n".join(
-                [
-                    "PASS" if lb_p > 0.05 else "FAIL",
-                ]
-            )
-            # Draw an ACF plot/correlogram to visually inspect autocorrelation
-            sm.graphics.tsa.plot_acf(data, ax, **acf_kwargs)
-            # Draw text
-            ax.text(
-                0.5,
-                0.95,
-                title,
-                ha="center",
-                va="top",
-                weight="bold",
-                transform=ax.transAxes,
-            )
-            ax.text(0.83, 0.05, text, ha="right", va="bottom", transform=ax.transAxes)
-            ax.text(0.85, 0.05, text_pass, ha="left", va="bottom", transform=ax.transAxes)
+#             # Ljung-Box Q-test for autocorrelation
+#             nlags_lb = 10
+#             lb = sm.stats.acorr_ljungbox(data, lags=nlags_lb)
+#             lb_stat = lb.at[nlags_lb, "lb_stat"]
+#             lb_p = lb.at[nlags_lb, "lb_pvalue"]
+#             # Compile all stats into text to write on the plots
+#             strings = [
+#                 f"Ljung-Box (lag={nlags_lb}) = {lb_stat:.1f}, p = {lb_p:.3f}",
+#             ]
+#             strings = [
+#                 s.replace("p = 0.", "p = .").replace("p = .000", "p < .001")
+#                 for s in strings
+#             ]
+#             text = "\n".join(strings)
+#             text_pass = "\n".join(
+#                 [
+#                     "PASS" if lb_p > 0.05 else "FAIL",
+#                 ]
+#             )
+#             # Draw an ACF plot/correlogram to visually inspect autocorrelation
+#             sm.graphics.tsa.plot_acf(data, ax, **acf_kwargs)
+#             # Draw text
+#             ax.text(
+#                 0.5,
+#                 0.95,
+#                 title,
+#                 ha="center",
+#                 va="top",
+#                 weight="bold",
+#                 transform=ax.transAxes,
+#             )
+#             ax.text(0.83, 0.05, text, ha="right", va="bottom", transform=ax.transAxes)
+#             ax.text(0.85, 0.05, text_pass, ha="left", va="bottom", transform=ax.transAxes)
 
-    # Export plots
-    utils.save_and_close_fig(export_path_plot)
+#     # Export plots
+#     utils.save_and_close_fig(export_path_plot)
 
 #########################################################
 

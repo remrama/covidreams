@@ -44,8 +44,9 @@ analysis_scripts = [
     # Longer post-COVID window
     "regression.py --longerwindow",
 
-    # Compile multi-panel figure
-    "figure.py",
+    # Generate manuscript assets
+    "generate_figure.py",
+    "generate_table.py",
 ]
 
 if __name__ == "__main__":

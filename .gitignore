@@ -1,4 +1,3 @@
 __pycache__/
 .ruff_cache/
-graphics/
-out/
+manuscript/out/

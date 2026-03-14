@@ -23,7 +23,7 @@ python scrape_reddit.py -r news --start 2019-01-01 --end 2020-12-31
 
 ### Run LIWC
 
-This step requires a local copy of LIWC-22 installed.
+This step requires a local copy of the LIWC-22 app installed.
 
 ```bash
 # Merge the two news files from different years
@@ -61,4 +61,8 @@ python correlation.py --nondreams
 
 # Run the interrupted time series with longer post-COVID time period
 python regression.py --longerwindow
+
+# Generate manuscript assets
+python generate_figure.py
+python generate_table.py
 ```

@@ -1,7 +1,8 @@
 {
     "sourcedata_directory": "../data/sourcedata",
     "derivatives_directory": "../data/derivatives",
-    "results_directory": "../results",
+    "figures_directory": "./manuscript/figures",
+    "tables_directory": "./manuscript/tables",
     "dream_flair": ["Short Dream", "Medium Dream", "Long Dream"],
     "zenodo_doi": "10.5281/zenodo.18940545",
     "data_registry": {

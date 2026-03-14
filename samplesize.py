@@ -40,7 +40,7 @@ export_dir.mkdir(exist_ok=True)
 PRE_WINDOW_DURATION = "29D"
 POST_WINDOW_DURATION = "30D"
 event_date = f"{year}-03-11"
-event_dt = pd.to_datetime(event_date, utc=True)
+event_dt = pd.to_datetime(event_date, utc=False)
 start_dt = event_dt - pd.Timedelta(PRE_WINDOW_DURATION)
 end_dt = event_dt + pd.Timedelta(POST_WINDOW_DURATION)
 start_date = start_dt.date().isoformat()

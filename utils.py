@@ -39,8 +39,10 @@ def read_liwc_csv(subreddit, dream_filter=None):
         .set_index("timestamp")
         .sort_index()
     )
+    df.index = df.index.tz_convert("America/New_York")
     if dream_filter is not None:
         df = filter_dreams(df, dream_filter)
+    df = df.sort_index()
     return df
 
 

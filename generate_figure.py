@@ -12,8 +12,8 @@ import utils
 
 # Declare filepaths for importing/exporting
 derivatives_dir = utils.config["derivatives_directory"]
-results_dir = utils.config["results_directory"]
-export_path = results_dir / "figure.pdf"
+figures_dir = utils.config["figures_directory"]
+export_path = figures_dir / "figure1.pdf"
 methods_path = Path("../docs") / "methods.svg"
 regr_path = derivatives_dir / "regression-plot.svg"
 chi2_path = derivatives_dir / "chisquared-plot.svg"

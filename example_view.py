@@ -18,7 +18,7 @@ export_path = derivatives_dir / "example_view.csv"
 PRE_WINDOW_DURATION = "29D" # 30 days including event date
 POST_WINDOW_DURATION = "30D"
 EVENT_DATE = "2020-03-11"
-event_dt = pd.to_datetime(EVENT_DATE, utc=True)
+event_dt = pd.to_datetime(EVENT_DATE, utc=False)
 start_dt = event_dt - pd.Timedelta(PRE_WINDOW_DURATION)
 end_dt = event_dt + pd.Timedelta(POST_WINDOW_DURATION)
 start_date = start_dt.date().isoformat()

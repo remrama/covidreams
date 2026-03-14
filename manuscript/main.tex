@@ -17,7 +17,7 @@
 \usepackage{graphicx}
 \usepackage{booktabs}
 \usepackage[font=small,labelfont=bf,labelsep=period,singlelinecheck=false]{caption}
-\graphicspath{{graphics/}}
+\graphicspath{{figures/}}
 
 % Title page
 \usepackage{authblk}
@@ -82,7 +82,7 @@ Here, we tested the ability to detect dynamic changes in multiple classes of dys
 
 \begin{figure*}[t]
     \centering
-    \includegraphics{figure.pdf}
+    \includegraphics{figure1.pdf}
     \caption{\textbf{Monitoring dysphoric dreaming on Reddit surrounding the declaration of COVID-19 as a global pandemic.} (A) Dream reports were extracted from Reddit by scraping \textit{r/Dreams} and filtering out posts that did not indicate a dream with post ``flair,'' leaving only dream posts. Anxious dreaming was quantified as the percentage of anxious words from the body text of dream posts (i.e., dream reports), and nightmares were identified as dream posts whose titles included a nonzero percentage of nightmare words. (B) Only dream-flaired posts surrounding the WHO's declaration of COVID-19 as a global pandemic were included in analysis. (C) Anxious dreaming -- the percentage of LIWC anxiety words -- increased following the WHO's declaration of COVID-19 as a global pandemic. Data line is smoothed over a 7-day moving average for visualization purposes only. Shaded error represents SEM. (D) More nightmares were posted to \textit{r/Dreams} in the month following the WHO's declaration of COVID-19 as a global pandemic than the month preceding. Error bars represent bootstrapped ($N = 2,000$) $95\%$ confidence intervals. (E) After the WHO's declaration of COVID-19 as a global pandemic, the frequency of COVID-related news posted on Reddit was predictive of anxious dreaming the following week.}
     \label{fig:summary}
 \end{figure*}
@@ -91,16 +91,7 @@ Here, we tested the ability to detect dynamic changes in multiple classes of dys
     \caption{\textbf{Statistics for main and control analyses.} Our primary analyses included only \textit{r/Dreams} posts that were flaired as dream reports surrounding March 11\textsuperscript{th}, 2020. To control for potential effects of seasonality, we ran the same analyses using only \textit{r/Dreams} posts that were flaired as dream reports surrounding March 11\textsuperscript{th}, 2019. To control for potential changes in common language, we ran the same analyses using only \textit{r/Dreams} posts that were not flaired as dream reports surrounding March 11\textsuperscript{th}, 2020. See Methods for descriptions of $B_1$, $B_2$, and $B_3$. Bolded values are statistically significant at $p < .05$.}
     \label{tab:statistics}
     \small
-    \begin{tabular}{p{0.17\textwidth} p{0.04\textwidth} p{0.06\textwidth} p{0.04\textwidth} p{0.06\textwidth} p{0.04\textwidth} p{0.07\textwidth} p{0.04\textwidth} p{0.07\textwidth} p{0.04\textwidth} p{0.04\textwidth}}
-        \toprule
-        {} & \multicolumn{6}{l}{Anxiety regression} & \multicolumn{2}{l}{Anxiety corr.} & \multicolumn{2}{l}{Nightmares chi-sq.} \\
-        Text source & $B_1$ & $p$ & $B_2$ & $p$ & $B_3$ & $p$ & $r$ & $p$ & $\chi^2$ & $p$ \\
-        \midrule
-        Dreams, 2020 & 0.00 & .467 & \textbf{0.13} & \textbf{.035} & 0.00 & .620 & \textbf{.46} & \textbf{.024} & \textbf{4.48} & \textbf{.034} \\
-        Dreams, 2019 & 0.00 & .936 & 0.05 & .538 & 0.00 & .944 & $\oslash$ & $\oslash$ & 0.17 & .679 \\
-        Non-dreams, 2020 & 0.00 & .958 & -0.02 & .643 & 0.00 & .943 & .02 & .920 & 0.00 & .969 \\
-        \bottomrule
-    \end{tabular}
+    \include{tables/table1.tex}
 \end{table*}
 
 \section*{Results}
@@ -110,6 +101,7 @@ We tracked various forms of dysphoric dream content posted on \textit{r/Dreams} 
 \par
 To better understand temporal dynamics and the role of media coverage, we examined the relationship between anxious dreaming and COVID-19-related news exposure. Weekly change in COVID-19-related \textit{r/news} posts was predictive of the following week's~\supercite{picard2022targeted} change in anxious dreaming ($r_{22} = 0.45$, $CI =$ [$0.06$, $0.72$], $p = .027$; Figure~\ref{fig:summary}E; see Table~\ref{tab:statistics} for control analyses). This result offers a more fine-grained temporal understanding of COVID-19's impact on dysphoric dreaming and suggests that media exposure might have driven dysphoric dreaming~\supercite{holman2014media}.
 
+\vfill
 \section*{Discussion}
 
 Dysphoric dreaming is only a small part of multidimensional sleep health, but the approach applied in this study might also be effective at tracking other sleep concerns. Dreams are commonly reported with language and thus readily observable on social media, though recent work suggests that Twitter activity can be indicative of sleep loss~\supercite{leypunskiy2018geographically,linnell2021sleep} and more general sleep problems~\supercite{mciver2015characterizing}. Our findings complement these approaches, and further developments will likely reveal that other aspects of sleep health are detectable in social media.
@@ -146,8 +138,7 @@ To test the relationship between COVID-19-related news and anxious dreaming, a l
 All analyses were repeated using the same dates in 2019 and posts from non-dream posts (unflaired posts from \textit{r/Dreams}) as controls for seasonality and general changes in language use, respectively. The interrupted time series and chi-squared tests were repeated at a longer post-event window size (2 months) to control for window selection.
 
 \par
-All tests were two-sided. Analyses were implemented in the \texttt{statsmodels} (interrupted time series) and \texttt{Pingouin} (chi-squared test and correlation) Python packages.
+All tests were two-sided. Analyses were implemented in the \texttt{statsmodels} and \texttt{Pingouin} Python packages.
 
-\bigskip
 \printbibliography
 \end{document}
