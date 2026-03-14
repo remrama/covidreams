@@ -30,42 +30,27 @@
 % Ignore underfull warning from page transition 1 to 2
 \vbadness=10000
 
-% \setlength{\parindent}{.5cm}
-% % \setlength{\columnsep}{.5cm}
-% \renewcommand{\arraystretch}{1.3} % default 1
-% % \setlength{\tabcolsep}{10pt} % default 6pt
-
-% % Tracking changes
-% \usepackage{xcolor}
-% \usepackage{soul}
-% \newcommand{\add}[1]{\textcolor{blue}{#1}}
-% \newcommand{\del}[1]{\textcolor{red}{\st{#1}}}
-
-%%%%%%%%%%% Title page info
-
 \title{\bf Social media reveals population dynamics of dysphoric dreaming}
-\author[1,2,3]{Remington Mallett\thanks{correspondence: mallett.remy@gmail.com}}
+
+\author[1,2,3]{Remington Mallett\thanks{correspondence: remington.mallett@u.northwestern.edu}}
 \author[4]{Laura Sowin}
-\author[1,2]{Michelle Carr}
-\affil[1]{Center for Advanced Research in Sleep Medicine, Integrated University Health and Social Services Centres, CAN}
+\author[2,3]{Michelle Carr}
+\affil[1]{Department of Psychology, Northwestern University, USA}
 \affil[2]{Department of Psychiatry and Addictology, University of Montreal, CAN}
-\affil[3]{Department of Psychology, Northwestern University, USA}
+\affil[3]{Center for Advanced Research in Sleep Medicine, Integrated University Health and Social Services Centres, CAN}
 \affil[4]{Media Lab, Massachusetts Institute of Technology, USA}
+
 \date{}
 
-
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% Title page
 \begin{document}
+
 \maketitle
 
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% Abstract
 \section*{Abstract}
-% \noindent
-% \textbf{Abstract.}
+
 Nightmares disrupt sleep health and predict future psychiatric diagnosis, yet reliable population estimates and their fluctuations over time are difficult to obtain. Here, we observe an increase in dysphoric dreaming shared on Reddit immediately following the World Health Organization's declaration of COVID-19 as a global pandemic. This ``digital dream surveillance'' approach might offer the field of sleep medicine a low-cost and real-time system for monitoring population sleep health.
 
 \bigskip
-% \smallskip
 \noindent {\bf Keywords:} nightmares, sleep, natural language processing, digital health surveillance, Reddit
 
 \bigskip
@@ -75,7 +60,7 @@ Nightmares disrupt sleep health and predict future psychiatric diagnosis, yet re
 \bigskip
 \noindent
 \textbf{Author contributions.}
-RM and MC designed the study. RM analyzed the data. RM and LS collected and inspected the data. RM and MC wrote the manuscript.
+RM and MC designed the study. RM analyzed the data. RM and LS collected and curated the data. RM and MC wrote the manuscript.
 
 \bigskip
 \noindent
@@ -87,11 +72,7 @@ The authors declare no potential competing interests.
 \textbf{Acknowledgements.}
 RM would like to thank Ashwini Ashokkumar for invaluable conversation and feedback related to the current project.
 
-% \vfill
 \newpage
-% \columnbreak
-% \bigskip
-% \noindent
 \section*{Introduction}
 
 Nightmares and other bad dreams incur major sleep health costs. Nightmare recallers suffer reduced sleep efficiency~\supercite{simor2012disturbed}, depressed mood~\supercite{blagrove2004relationship}, increased suicide risk~\supercite{que2022nightmares}, and are more likely to receive further psychiatric diagnoses than their counterparts~\supercite{wong2022prevalence}. Despite their clinical significance, reliable and ecological estimates of dysphoric dreaming in the population are difficult to obtain due to variable definitions~\supercite{worley2021epidemiology}. Thus, there is high demand in sleep medicine for a naturalistic approach to measuring population-level dysphoric dreaming over time and with multiple definitions.
@@ -106,7 +87,6 @@ Here, we tested the ability to detect dynamic changes in multiple classes of dys
     \label{fig:summary}
 \end{figure*}
 
-
 \begin{table*}[t]
     \caption{\textbf{Statistics for main and control analyses.} Our primary analyses included only \textit{r/Dreams} posts that were flaired as dream reports surrounding March 11\textsuperscript{th}, 2020. To control for potential effects of seasonality, we ran the same analyses using only \textit{r/Dreams} posts that were flaired as dream reports surrounding March 11\textsuperscript{th}, 2019. To control for potential changes in common language, we ran the same analyses using only \textit{r/Dreams} posts that were not flaired as dream reports surrounding March 11\textsuperscript{th}, 2020. See Methods for descriptions of $B_1$, $B_2$, and $B_3$. Bolded values are statistically significant at $p < .05$.}
     \label{tab:statistics}
@@ -114,7 +94,6 @@ Here, we tested the ability to detect dynamic changes in multiple classes of dys
     \begin{tabular}{p{0.17\textwidth} p{0.04\textwidth} p{0.06\textwidth} p{0.04\textwidth} p{0.06\textwidth} p{0.04\textwidth} p{0.07\textwidth} p{0.04\textwidth} p{0.07\textwidth} p{0.04\textwidth} p{0.04\textwidth}}
         \toprule
         {} & \multicolumn{6}{l}{Anxiety regression} & \multicolumn{2}{l}{Anxiety corr.} & \multicolumn{2}{l}{Nightmares chi-sq.} \\
-        % \cmidrule{2-11}
         Text source & $B_1$ & $p$ & $B_2$ & $p$ & $B_3$ & $p$ & $r$ & $p$ & $\chi^2$ & $p$ \\
         \midrule
         Dreams, 2020 & 0.00 & .467 & \textbf{0.13} & \textbf{.035} & 0.00 & .620 & \textbf{.46} & \textbf{.024} & \textbf{4.48} & \textbf{.034} \\
@@ -123,7 +102,6 @@ Here, we tested the ability to detect dynamic changes in multiple classes of dys
         \bottomrule
     \end{tabular}
 \end{table*}
-
 
 \section*{Results}
 
@@ -142,7 +120,6 @@ This study has several limitations. First, Reddit users are not necessarily repr
 \par
 Currently, tracking sleep health at the population level is a large investment. Traditional survey methods require significant cost and labor to distribute, restricting data collection to discrete time points (e.g., annually). To overcome these limitations, we showed that the language of social media is sensitive to detecting dynamic changes and can be used to estimate population-level dysphoric dream content over time. This low-cost method of digital sleep-health surveillance might offer sleep medicine the opportunity to gain better insights into population sleep patterns and ultimately provide a regional monitoring system for targeted preemptive care.
 
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% Methods
 \section*{Methods}
 
 \textbf{Data source.} Data was extracted from Reddit using the PSAW Python package to interface with Pushshift. Posts from the \textit{r/Dreams} subreddit with ``Short Dream,'' ``Medium Dream,'' or ``Long Dream'' flair were used for dysphoric dreaming measures. Posts from the \textit{r/news} subreddit were used for the COVID-19-related news measure. This research was identified as exempt from review by the Northwestern University Institutional Review Board due to the public nature of this dataset.
@@ -171,8 +148,6 @@ All analyses were repeated using the same dates in 2019 and posts from non-dream
 \par
 All tests were two-sided. Analyses were implemented in the \texttt{statsmodels} (interrupted time series) and \texttt{Pingouin}~\supercite{vallat2018pingouin} (chi-squared test and correlation) Python packages.
 
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% References
-% \newpage
 \bigskip
 \printbibliography
 \end{document}
