@@ -47,6 +47,7 @@ analysis_scripts = [
     # Generate manuscript assets
     "generate_figure.py",
     "generate_table.py",
+    "generate_variables.py",
 ]
 
 if __name__ == "__main__":

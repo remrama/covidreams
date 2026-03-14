@@ -65,4 +65,5 @@ python regression.py --longerwindow
 # Generate manuscript assets
 python generate_figure.py
 python generate_table.py
+python generate_variables.py
 ```

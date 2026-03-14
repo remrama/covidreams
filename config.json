@@ -1,6 +1,7 @@
 {
     "sourcedata_directory": "../data/sourcedata",
     "derivatives_directory": "../data/derivatives",
+    "manuscript_directory": "./manuscript",
     "figures_directory": "./manuscript/figures",
     "tables_directory": "./manuscript/tables",
     "dream_flair": ["Short Dream", "Medium Dream", "Long Dream"],
