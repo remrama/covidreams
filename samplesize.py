@@ -92,6 +92,7 @@ def get_table(dataframe):
 ################  Plotting  ################
 ############################################
 
+
 def plot_samplesize(dataframe):
     export_path = export_dir / "samplesize-plot.png"
     # Set global matplotlib settings
@@ -165,7 +166,9 @@ if __name__ == "__main__":
     df = utils.read_liwc_csv(subreddit="dreams")
 
     # Consolidate flair
-    df["flair"] = df["flair"].map(lambda x: x if x in utils.config["dream_flair"] else "None")
+    df["flair"] = df["flair"].map(
+        lambda x: x if x in utils.config["dream_flair"] else "None"
+    )
 
     get_table(df)
     plot_samplesize(df)

@@ -55,7 +55,7 @@ if days == 60:
 export_parent.mkdir(exist_ok=True)
 
 # Creates pandas datetimes for main COVID event and start, end of windows
-PRE_WINDOW_DURATION = "29D" # 30 days including event date
+PRE_WINDOW_DURATION = "29D"  # 30 days including event date
 post_window_duration = f"{days:d}D"
 event_date = f"{year}-03-11"
 event_dt = pd.to_datetime(event_date, utc=False)
@@ -73,18 +73,15 @@ def run_regression(flair):
     df = utils.read_liwc_csv(subreddit="dreams", dream_filter=flair)
 
     # Get average values per day
-    daily = (
-        df.resample("1D")[TEXT_COLUMN]
-        .mean()
-        .sort_index(ascending=True)
-        .to_frame()
-    )
+    daily = df.resample("1D")[TEXT_COLUMN].mean().sort_index(ascending=True).to_frame()
 
     # Shift dream anxiety back one day since posts are from dreams occuring the previous day
     daily[TEXT_COLUMN] = daily[TEXT_COLUMN].shift(-1)
 
     # Save a smoothed version for later access when plotting
-    daily[TEXT_COLUMN + "_smooth"] = daily[TEXT_COLUMN].rolling(window=7, center=True).mean()
+    daily[TEXT_COLUMN + "_smooth"] = (
+        daily[TEXT_COLUMN].rolling(window=7, center=True).mean()
+    )
 
     # # Simplify timestamp index as a new date column
     # daily["date"] = daily.index.to_frame()["timestamp"].dt.date
@@ -128,7 +125,7 @@ def run_regression(flair):
     # pred = predicted.rename("pred")
     # model_vals = obs.join(pred).join(dat).join(datsmooth)
 
-    # # Export 
+    # # Export
     result.year = year
     result.save(export_path)
     # model_vals.to_csv(export_path_vals, na_rep="N/A", sep="\t")
@@ -136,9 +133,11 @@ def run_regression(flair):
         f.write(result.summary().as_text())
     return result
 
+
 ############################################
 ################  Plotting  ################
 ############################################
+
 
 def plot_regression(result):
     export_path = export_parent / "regression-plot.png"
@@ -244,9 +243,11 @@ def plot_regression(result):
     utils.save_and_close_fig(export_path, include_svg=True)
     return
 
+
 ##########################################################################
 ################  Stats and Plotting for Autocorrelation  ################
 ##########################################################################
+
 
 def autocorrelation(result):
     export_path_stats = export_parent / "regression-acor.tsv"
@@ -274,7 +275,12 @@ def autocorrelation(result):
     records = [
         {"test": "Durbin-Watson", "stat": db_stat},
         {"test": "Ljung-Box", "stat": lb_stat, "pval": lb_pval, "nlags": N_LAGS_LB},
-        {"test": "Breusch-Godfrey", "stat": bg_stat, "pval": bg_pval, "nlags": N_LAGS_BG},
+        {
+            "test": "Breusch-Godfrey",
+            "stat": bg_stat,
+            "pval": bg_pval,
+            "nlags": N_LAGS_BG,
+        },
     ]
     df = pd.DataFrame.from_records(records, index="test").astype({"nlags": "Int64"})
     df["stat"] = df["stat"].round(2)
@@ -305,7 +311,9 @@ def autocorrelation(result):
     sm.graphics.tsa.plot_acf(result.resid, ax, **acf_kwargs)
     # Draw text
     title = "Autocorrelation of model residuals"
-    ax.text(0.5, 0.95, title, ha="center", va="top", weight="bold", transform=ax.transAxes)
+    ax.text(
+        0.5, 0.95, title, ha="center", va="top", weight="bold", transform=ax.transAxes
+    )
     ax.text(0.83, 0.05, text, ha="right", va="bottom", transform=ax.transAxes)
     ax.text(0.85, 0.05, text_pass, ha="left", va="bottom", transform=ax.transAxes)
 

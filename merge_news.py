@@ -12,7 +12,9 @@ derivatives_dir = utils.config["derivatives_directory"]
 export_path = derivatives_dir / "r-news.csv"
 
 news2020_filepath = utils.fetch_sourcedata("r-news.csv")
-news2019_filepath = utils.fetch_sourcedata("news_since-2019-03-01_until-2019-10-01.jsonl")
+news2019_filepath = utils.fetch_sourcedata(
+    "news_since-2019-03-01_until-2019-10-01.jsonl"
+)
 
 news2020 = pd.read_csv(news2020_filepath, encoding="utf-8")
 news2019 = pd.read_json(news2019_filepath, lines=True, encoding="utf-8")

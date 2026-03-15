@@ -74,7 +74,11 @@ fig = sc.Figure(
     ).move(regr_x + chi2_x + TEXT_HPAD * 3 + HPAD * 2, vpad_ppi),
 )
 
-with tempfile.NamedTemporaryFile(suffix=".svg", delete=True, delete_on_close=False) as tmp:
+with tempfile.NamedTemporaryFile(
+    suffix=".svg", delete=True, delete_on_close=False
+) as tmp:
     fig.save(tmp.name)
     cairosvg.svg2pdf(url=tmp.name, write_to=str(export_path))
-    cairosvg.svg2png(url=tmp.name, write_to=str(export_path_png), background_color="white")
+    cairosvg.svg2png(
+        url=tmp.name, write_to=str(export_path_png), background_color="white"
+    )

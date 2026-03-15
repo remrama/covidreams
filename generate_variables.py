@@ -48,8 +48,12 @@ def newcommand(name, value):
 # --- Load data ---
 
 regr = sm_lm.RegressionResultsWrapper.load(derivatives_dir / "regression-results.pkl")
-chi2_stat = pd.read_table(derivatives_dir / "chisquared-stat.tsv", index_col="test").loc["pearson"]
-corr_stat = pd.read_table(derivatives_dir / "correlation-stat.tsv", index_col="test").loc["spearman"]
+chi2_stat = pd.read_table(
+    derivatives_dir / "chisquared-stat.tsv", index_col="test"
+).loc["pearson"]
+corr_stat = pd.read_table(
+    derivatives_dir / "correlation-stat.tsv", index_col="test"
+).loc["spearman"]
 regr_acor = pd.read_table(derivatives_dir / "regression-acor.tsv", index_col="test")
 corr_acor = pd.read_table(derivatives_dir / "correlation-acor.tsv", index_col="test")
 
@@ -91,8 +95,8 @@ corr_result = newcommand(
 
 # Correlation sample sizes
 corr_n_dreams = newcommand("corrNDreams", fmt_n(corr_stat["n_rdreams"]))
-corr_n_news   = newcommand("corrNNews",   fmt_n(corr_stat["n_rnews"]))
-corr_n_weeks  = newcommand("corrNWeeks",  str(int(corr_stat["n"])))
+corr_n_news = newcommand("corrNNews", fmt_n(corr_stat["n_rnews"]))
+corr_n_weeks = newcommand("corrNWeeks", str(int(corr_stat["n"])))
 
 # Regression autocorrelation
 regr_dw = newcommand(

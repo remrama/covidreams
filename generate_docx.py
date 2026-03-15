@@ -31,16 +31,25 @@ with tempfile.NamedTemporaryFile(
     tmp_path = Path(tmp.name)
 
 try:
-    subprocess.run([
-        "pandoc", tmp_path,
-        "--from=latex",
-        "--to=docx",
-        "--citeproc",
-        "--bibliography", "references.bib",
-        "--csl", csl_fname,
-        "--number-sections",
-        "--reference-doc", "word/reference.docx",
-        "-o", "word/main.docx",
-    ], check=True, cwd=manuscript_dir)
+    subprocess.run(
+        [
+            "pandoc",
+            tmp_path,
+            "--from=latex",
+            "--to=docx",
+            "--citeproc",
+            "--bibliography",
+            "references.bib",
+            "--csl",
+            csl_fname,
+            "--number-sections",
+            "--reference-doc",
+            "word/reference.docx",
+            "-o",
+            "word/main.docx",
+        ],
+        check=True,
+        cwd=manuscript_dir,
+    )
 finally:
     tmp_path.unlink()

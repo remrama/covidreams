@@ -15,7 +15,7 @@ sourcedata_dir = utils.config["sourcedata_directory"]
 import_path_raw = sourcedata_dir / "r-dreams.csv"
 export_path = derivatives_dir / "example_view.csv"
 
-PRE_WINDOW_DURATION = "29D" # 30 days including event date
+PRE_WINDOW_DURATION = "29D"  # 30 days including event date
 POST_WINDOW_DURATION = "30D"
 EVENT_DATE = "2020-03-11"
 event_dt = pd.to_datetime(EVENT_DATE, utc=False)

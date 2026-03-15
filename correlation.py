@@ -65,9 +65,14 @@ def run_correlation(flair):
     news["subreddit"] = "news"
 
     # Merge dataframes
-    df = pd.concat(
-        [drms.reset_index(drop=False), news.reset_index(drop=False)], ignore_index=True
-    ).set_index("timestamp").sort_index()
+    df = (
+        pd.concat(
+            [drms.reset_index(drop=False), news.reset_index(drop=False)],
+            ignore_index=True,
+        )
+        .set_index("timestamp")
+        .sort_index()
+    )
 
     # Reduce to desired window
     df = df.loc[start_date:end_date]
@@ -75,8 +80,7 @@ def run_correlation(flair):
     # Get weekly averages
     # (Use weekly averages bc otherwise nightmare frequency has many zeros and pct change breaks)
     weekly = (
-        df
-        .reset_index(drop=False)
+        df.reset_index(drop=False)
         .groupby(["subreddit", pd.Grouper(key="timestamp", freq="W")])[
             ["covid", "anxiety"]
         ]
@@ -120,15 +124,17 @@ def run_correlation(flair):
 
     # Export stats
     stat.to_csv(export_path, index_label="test", sep="\t", encoding="utf-8")
-    
+
     # weekly.to_csv(
     #     export_path_vals, index_label="week", sep="\t", na_rep="N/A", date_format="%Y-%m-%d"
     # )
     return stat, weekly
 
+
 ############################################
 ################  Plotting  ################
 ############################################
+
 
 def plot_correlation(stat, data):
     export_path = export_parent / "correlation-plot.png"
@@ -212,7 +218,9 @@ def plot_correlation(stat, data):
     cax.text(
         -0.05, 0.5, cbar_ticklabels[0], ha="right", va="center", transform=cax.transAxes
     )
-    cax.text(1.05, 0.5, cbar_ticklabels[1], ha="left", va="center", transform=cax.transAxes)
+    cax.text(
+        1.05, 0.5, cbar_ticklabels[1], ha="left", va="center", transform=cax.transAxes
+    )
     cbar_label = "Weeks after\ndeclaration"
     if year == 2019:
         cbar_label = cbar_label.replace("declaration", "March 11, 2019")
@@ -221,6 +229,7 @@ def plot_correlation(stat, data):
     # Export plots
     utils.save_and_close_fig(export_path, include_svg=True)
     return
+
 
 #######################################################################################
 ################  Stats and Plotting for Autocorrelation/Stationarity  ################
@@ -293,6 +302,7 @@ def plot_correlation(stat, data):
 
 #########################################################
 
+
 def autocorrelation(data):
     export_path_stats = export_parent / "correlation-acor.tsv"
     # Run regression
@@ -302,7 +312,7 @@ def autocorrelation(data):
         formula="nextDreams_pctchange ~ news_pctchange", data=weekly_nonan
     )
     result = model.fit()
-    
+
     export_path_plot = export_path_stats.with_suffix(".png")
 
     N_LAGS_LB = 10
@@ -327,7 +337,12 @@ def autocorrelation(data):
     records = [
         {"test": "Durbin-Watson", "stat": db_stat},
         {"test": "Ljung-Box", "stat": lb_stat, "pval": lb_pval, "nlags": N_LAGS_LB},
-        {"test": "Breusch-Godfrey", "stat": bg_stat, "pval": bg_pval, "nlags": N_LAGS_BG},
+        {
+            "test": "Breusch-Godfrey",
+            "stat": bg_stat,
+            "pval": bg_pval,
+            "nlags": N_LAGS_BG,
+        },
     ]
     df = pd.DataFrame.from_records(records, index="test").astype({"nlags": "Int64"})
     df["stat"] = df["stat"].round(2)
@@ -358,7 +373,9 @@ def autocorrelation(data):
     sm.graphics.tsa.plot_acf(result.resid, ax, **acf_kwargs)
     # Draw text
     title = "Autocorrelation of model residuals"
-    ax.text(0.5, 0.95, title, ha="center", va="top", weight="bold", transform=ax.transAxes)
+    ax.text(
+        0.5, 0.95, title, ha="center", va="top", weight="bold", transform=ax.transAxes
+    )
     ax.text(0.83, 0.05, text, ha="right", va="bottom", transform=ax.transAxes)
     ax.text(0.85, 0.05, text_pass, ha="left", va="bottom", transform=ax.transAxes)
 

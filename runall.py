@@ -29,21 +29,17 @@ analysis_scripts = [
     "regression.py",
     "chisquared.py",
     "correlation.py",
-
     # Prior year controls (seasonality)
     "samplesize.py --prioryear",
     "regression.py --prioryear",
     "chisquared.py --prioryear",
     "correlation.py --prioryear",
-
     # Non-flaired post controls (daily language)
     "regression.py --nondreams",
     "chisquared.py --nondreams",
     "correlation.py --nondreams",
-
     # Longer post-COVID window
     "regression.py --longerwindow",
-
     # Generate manuscript assets
     "generate_figure.py",
     "generate_table.py",
@@ -52,8 +48,12 @@ analysis_scripts = [
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="Run all analysis scripts.")
-    parser.add_argument("--scrape", action="store_true", help="Include data scraping step")
-    parser.add_argument("--liwc", action="store_true", help="Include LIWC processing step")
+    parser.add_argument(
+        "--scrape", action="store_true", help="Include data scraping step"
+    )
+    parser.add_argument(
+        "--liwc", action="store_true", help="Include LIWC processing step"
+    )
     args = parser.parse_args()
 
     scripts = []

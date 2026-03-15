@@ -80,9 +80,9 @@ def build_row(label, reg, chi2, corr):
     p1 = bold_if_sig(fmt_p(reg["p1"]), reg["p1"])
     p2 = bold_if_sig(fmt_p(reg["p2"]), reg["p2"])
     p3 = bold_if_sig(fmt_p(reg["p3"]), reg["p3"])
-    r  = bold_if_sig(fmt_r(corr["r"]), corr["p"])
+    r = bold_if_sig(fmt_r(corr["r"]), corr["p"])
     pr = bold_if_sig(fmt_p(corr["p"]), corr["p"])
-    x  = bold_if_sig(fmt_chi2(chi2["chi2"]), chi2["p"])
+    x = bold_if_sig(fmt_chi2(chi2["chi2"]), chi2["p"])
     px = bold_if_sig(fmt_p(chi2["p"]), chi2["p"])
     return " & ".join([label, b1, p1, b2, p2, b3, p3, r, pr, x, px]) + r" \\"
 

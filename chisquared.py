@@ -52,6 +52,7 @@ end_dt = event_dt + pd.Timedelta(POST_WINDOW_DURATION)
 start_date = start_dt.date().isoformat()
 end_date = end_dt.date().isoformat()
 
+
 def run_chisquared(flair):
     export_path = export_parent / "chisquared-stat.tsv"
     # Load data
@@ -116,9 +117,11 @@ def run_chisquared(flair):
     stat.to_csv(export_path, sep="\t", encoding="utf-8")
     return stat
 
+
 ############################################
 ################  Plotting  ################
 ############################################
+
 
 def plot_chisquared(stat):
     export_path = export_parent / "chisquared-plot.png"
@@ -172,7 +175,9 @@ def plot_chisquared(stat):
     ax.set_xticks(xvals)
     # ax.set_xticklabels(xtick_labels)
     ax.set_ylabel("Nightmare frequency (%)")
-    ax.tick_params(which="both", top=False, right=False, bottom=False, labelbottom=False)
+    ax.tick_params(
+        which="both", top=False, right=False, bottom=False, labelbottom=False
+    )
     ax.yaxis.set_major_locator(plt.MultipleLocator(5))
     ax.yaxis.set_minor_locator(plt.MultipleLocator(1))
     bar_hw = bar_kwargs["width"] / 2
