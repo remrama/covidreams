@@ -50,26 +50,26 @@
 
 \section*{Abstract}
 
-Nightmares disrupt sleep health and predict future psychiatric diagnosis, yet reliable population estimates and their fluctuations over time are difficult to obtain. Here, we observe an increase in dysphoric dreaming shared on Reddit immediately following the World Health Organization's declaration of COVID-19 as a global pandemic. This ``digital dream surveillance'' approach might offer the field of sleep medicine a low-cost and real-time system for monitoring population sleep health.
+Nightmares disrupt sleep health and predict future psychiatric diagnoses, yet reliable population estimates and their fluctuations over time are difficult to obtain. Here, we set out to test if a digital surveillance approach could be used to observe reliable estimates of nightmare frequency and dysphoric dreaming in the general population from social media posts. English-language posts from \textit{r/Dreaming}, a subreddit where users share their dreams, were analyzed using Linguistic Inquiry and Word Count to quantify nightmare frequency and anxious dreaming from text. An interrupted time series analysis was used to show that both nightmare frequency and dysphoric dreaming increased immediately following the World Health Organization's declaration of COVID-19 as a global pandemic. This observation mirrors a large body of existing work that used more traditional methods. This ``digital dream surveillance'' approach might offer the field of sleep medicine a low-cost and real-time system for monitoring population sleep health.
 
 \bigskip
-\noindent {\bf Keywords:} nightmares, sleep, natural language processing, digital health surveillance, Reddit
+\noindent {\bf Keywords:} nightmares, sleep, natural language processing, digital health surveillance, Reddit, LIWC
 
-\bigskip
+\smallskip
 \noindent
 \textbf{Resource availability.} All code used to extract and analyze data is available in a public GitHub repository (https://github.com/remrama/covidreams). All data used in the current study is available in a public Zenodo repository (https://zenodo.org/records/18940545).
 
-\bigskip
+\smallskip
 \noindent
 \textbf{Author contributions.}
 RM and MC designed the study. RM analyzed the data. RM and LS collected and curated the data. RM and MC wrote the manuscript.
 
-\bigskip
+\smallskip
 \noindent
 \textbf{Competing Interests.}
 The authors declare no potential competing interests.
 
-\bigskip
+\smallskip
 \noindent
 \textbf{Acknowledgements.}
 RM would like to thank Ashwini Ashokkumar for invaluable conversation and feedback related to the current project.
@@ -80,7 +80,7 @@ RM would like to thank Ashwini Ashokkumar for invaluable conversation and feedba
 Nightmares and other bad dreams incur major sleep health costs, especially after traumatic events~\supercite{lavie2001disturbances}. Nightmare recallers suffer reduced sleep efficiency~\supercite{simor2012disturbed}, depressed mood~\supercite{blagrove2004relationship}, increased risk of suicide~\supercite{que2022nightmares}, and are more likely to receive further psychiatric diagnoses than their counterparts~\supercite{wong2023prevalence,otaiku2023distressing,mendoza2025systematic}. Despite this relevance to public health, reliable and ecological estimates of dysphoric dreaming in the population are difficult to obtain due to variable definitions~\supercite{worley2021epidemiology}. Thus, there is high demand in sleep medicine for a naturalistic approach to measuring population-level dysphoric dreaming over time and with multiple definitions.
 
 \par
-Here, we tested the ability to detect dynamic changes in multiple classes of dysphoric dreaming~\supercite{siclari2020dreams} -- nightmares and anxious dreaming -- on social media using natural language processing. Prior survey studies suggest that dysphoric dreaming increased during the first wave of the COVID-19 pandemic~\supercite{solomonova2021stuck}, but such studies have limited temporal precision and low ecological validity. Utilizing natural and unprompted human discourse from social media offers many advantages over retrospective survey studies~\supercite{lazer2021meaningful}, including reduced reporting bias and real-time monitoring that allows for preventative rather than reactive medicine. This digital health surveillance approach has been used frequently to track population health in psychiatry and other fields~\supercite{shakeri2021digital}, but is only beginning to gain traction in sleep health~\supercite{mciver2015characterizing,leypunskiy2018geographically}.
+Here, we tested the ability to detect dynamic changes in multiple classes of dysphoric dreaming~\supercite{siclari2020dreams} -- nightmares and anxious dreaming -- on social media using natural language processing. Prior survey studies suggest that dysphoric dreaming increased during the first wave of the COVID-19 pandemic~\supercite{solomonova2021stuck}, but such studies have limited temporal precision and low ecological validity. Utilizing natural and unprompted human discourse from social media offers many advantages over retrospective survey studies when looking at population-level information~\supercite{lazer2021meaningful}, including reduced reporting bias and real-time monitoring that allows for preventative rather than reactive medicine. This digital health surveillance approach has been used frequently to track population health in psychiatry and other fields~\supercite{shakeri2021digital}, but is only beginning to gain traction in sleep health~\supercite{mciver2015characterizing,leypunskiy2018geographically}.
 
 \begin{figure*}[t]
     \centering
