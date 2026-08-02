@@ -13,30 +13,8 @@
             ]
         },
         {
-            "name": "lualatex",
-            "command": "lualatex",
-            "args": [
-                "-synctex=1",
-                "-interaction=nonstopmode",
-                "-file-line-error",
-                "-output-directory=%OUTDIR%",
-                "%DOC%"
-            ]
-        },
-        {
             "name": "pdflatex",
             "command": "pdflatex",
-            "args": [
-                "-synctex=1",
-                "-interaction=nonstopmode",
-                "-file-line-error",
-                "-output-directory=%OUTDIR%",
-                "%DOC%"
-            ]
-        },
-        {
-            "name": "xelatex",
-            "command": "xelatex",
             "args": [
                 "-synctex=1",
                 "-interaction=nonstopmode",
@@ -48,28 +26,12 @@
     ],
     "latex-workshop.latex.recipes": [
         {
-            "name": "lualatex",
-            "tools": ["lualatex"]
-        },
-        {
             "name": "pdflatex",
             "tools": ["pdflatex"]
         },
         {
-            "name": "xelatex",
-            "tools": ["xelatex"]
-        },
-        {
-            "name": "lualatex > biber > lualatex x 2",
-            "tools": ["lualatex", "biber", "lualatex", "lualatex"]
-        },
-        {
             "name": "pdflatex > biber > pdflatex x 2",
             "tools": ["pdflatex", "biber", "pdflatex", "pdflatex"]
-        },
-        {
-            "name": "xelatex > biber > xelatex x 2",
-            "tools": ["xelatex", "biber", "xelatex", "xelatex"]
         }
     ]
 }
