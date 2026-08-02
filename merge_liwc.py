@@ -82,7 +82,7 @@ dreams_filepath = utils.fetch_sourcedata("r-dreams.csv")
 dreams_raw = read_raw_reddit(dreams_filepath)
 news_raw = read_raw_reddit(derivatives_dir / "r-news.csv")
 
-# LIWC results for r/dreams needs to load and merge two separate LIWC outputs
+# LIWC results for r/Dreams needs to load and merge two separate LIWC outputs
 # because two different dictionary files were used. r/news is just one output file.
 dreams_liwc_liwc22 = read_liwc_output(derivatives_dir / "liwc-dreams-anxiety.csv")
 dreams_liwc_custom = read_liwc_output(derivatives_dir / "liwc-dreams-nightmare.csv")
